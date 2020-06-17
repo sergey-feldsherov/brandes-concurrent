@@ -19,7 +19,6 @@ class Graph {
     globalArgs_t * const args = NULL;
 
     void addEdge(vertex u0, vertex u1) {
-        assert(u0 != u1);
         edges[u0].insert(u1);
     }
 
