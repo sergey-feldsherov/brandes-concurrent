@@ -5,6 +5,7 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <stdlib.h>
 
 #include "Graph.h"
 #include "ProgressBar.h"
@@ -21,11 +22,24 @@ void Graph::loadGraph() {
 
     unsigned int edgeCount = 0;
     unsigned long long t = currTimeNano();
+
+    char* line;
+    size_t len = 0;
     vertex v0, v1;
-    while(fscanf(input, "%u %u", &v0, &v1) == 2) {
-        addEdge(v0, v1);
-        edgeCount++;
+    while(getline(&line, &len, input) != -1) {
+        if(line[0] == '#') {
+            printf("Encountered a commentary line\n");
+        } else {
+            if(sscanf(line, "%u %u", &v0, &v1) == 2) {
+                addEdge(v0, v1);
+                edgeCount++;
+            } else {
+                printf("Invalid line: %s\n", line);
+                abort();
+            }
+        }
     }
+
     fclose(input);
     t = currTimeNano() - t;
 
