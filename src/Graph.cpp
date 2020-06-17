@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <list>
 #include <vector>
+#include <string>
 
 #include "Graph.h"
 #include "ProgressBar.h"
@@ -33,13 +34,14 @@ void Graph::loadGraph() {
 
 
 void Graph::computeBrandes() {
-    printf("Beginning Brandes\n");
+    ProgressBar computationProgress(edges.size(), "Running Brandes...");
     auto t = currTimeNano();
 
     for(auto p: edges) {
         ranking[p.first] = 0;
     }
 
+    unsigned int it = 0;
     for(auto p: edges) {
         vertex s = p.first;
 
@@ -94,9 +96,18 @@ void Graph::computeBrandes() {
                 ranking[w] += delta[w];
             }
         }
+        ++computationProgress;
+        ++it;
+        double time = (currTimeNano() - t) * 1e-9;
+        double avg_speed = it / time;
+        double eta = edges.size() / avg_speed;
+        char stats[256];
+        sprintf(stats, "time: %.2lf seconds, eta: %.2lf seconds", time, eta);
+        computationProgress.updateLastPrintedMessage(std::string(stats));
     }
 
     t = currTimeNano() - t;
+    computationProgress.endProgressBar();
     printf("Done (%.3lf seconds)\n", t * 1e-9);
 }
 
