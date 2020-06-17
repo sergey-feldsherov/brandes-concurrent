@@ -12,6 +12,7 @@
 
 
 void Graph::loadGraph() {
+    printf("Reading graph from %s\n", args->inputFile.c_str());
     FILE *input = fopen(args->inputFile.c_str(), "r");
     if(input == NULL) {
         printf("Unable to open input file: %s.\n", args->inputFile.c_str());
@@ -28,13 +29,14 @@ void Graph::loadGraph() {
     fclose(input);
     t = currTimeNano() - t;
 
-    printf("Graph read in %.2lf seconds.\n", t * 1e-9);
-    printf("Vertices: %lu, edges: %u\n", edges.size(), edgeCount);
+    printf("Done ( %.2lf seconds)\n", t * 1e-9);
+    printf("Vertices: %'lu, edges: %'u\n", edges.size(), edgeCount);
 }
 
 
 void Graph::computeBrandes() {
-    ProgressBar computationProgress(edges.size(), "Running Brandes...");
+    printf("Running Brandes...\n");
+    ProgressBar computationProgress(edges.size(), "Progress:");
     auto t = currTimeNano();
 
     for(auto p: edges) {
