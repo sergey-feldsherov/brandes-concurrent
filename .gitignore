@@ -1,3 +1,6 @@
 *.o
 brandes
 *~
+*.txt
+*.graph
+*.ranking
