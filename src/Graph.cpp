@@ -39,6 +39,9 @@ void Graph::loadGraph() {
             }
         }
     }
+    if(line) {
+        free(line);
+    }
 
     fclose(input);
     t = currTimeNano() - t;
