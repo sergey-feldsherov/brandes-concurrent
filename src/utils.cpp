@@ -6,7 +6,7 @@
 void initArgs(struct globalArgs_t *args) {
     args->debug      = false;
     args->inputFile  = "";
-    args->outputFile = "";
+    args->outputFile = "output/output.ranking";
 
     return;
 }
