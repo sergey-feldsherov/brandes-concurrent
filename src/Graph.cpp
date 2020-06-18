@@ -129,7 +129,7 @@ void Graph::computeBrandes() {
         int hours = minutes / 60;
         minutes %= 60;
         double avg_speed = it / time;
-        int etotal = (int) (edges.size() / avg_speed);
+        int etotal = (int) (vertices.size() / avg_speed);
         int eseconds = etotal % 60;
         int eminutes = etotal / 60;
         int ehours = eminutes / 60;
