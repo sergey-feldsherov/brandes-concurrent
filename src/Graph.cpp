@@ -2,6 +2,7 @@
 #include <stack>
 #include <deque>
 #include <unordered_map>
+#include <unordered_set>
 #include <list>
 #include <vector>
 #include <string>
@@ -20,6 +21,7 @@ void Graph::loadGraph() {
         return;
     }
 
+    std::unordered_set< vertex > tmp;
     unsigned int edgeCount = 0;
     unsigned long long t = currTimeNano();
 
@@ -32,6 +34,8 @@ void Graph::loadGraph() {
         } else {
             if(sscanf(line, "%u %u", &v0, &v1) == 2) {
                 addEdge(v0, v1);
+                tmp.insert(v0);
+                tmp.insert(v1);
                 edgeCount++;
             } else {
                 printf("Invalid line: %s\n", line);
@@ -46,8 +50,10 @@ void Graph::loadGraph() {
     fclose(input);
     t = currTimeNano() - t;
 
+    vertices = std::vector< vertex >(tmp.begin(), tmp.end());
+
     printf("Done ( %.2lf seconds)\n", t * 1e-9);
-    printf("Vertices: %'lu, edges: %'u\n", edges.size(), edgeCount);
+    printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
 }
 
 
@@ -61,8 +67,7 @@ void Graph::computeBrandes() {
     }
 
     unsigned int it = 0;
-    for(auto p: edges) {
-        vertex s = p.first;
+    for(auto s: vertices) {
 
         std::stack< vertex > S;
         assert(S.empty());

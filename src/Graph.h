@@ -2,6 +2,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <list>
+#include <vector>
 
 #include "utils.h"
 #include "ProgressBar.h"
@@ -13,6 +14,7 @@ typedef std::pair<vertex, vertex> edge;
 
 class Graph {
  private:
+    std::vector< vertex > vertices;
     std::unordered_map< vertex, std::unordered_set< vertex > > edges;
     std::unordered_map< vertex, double > ranking;
 
