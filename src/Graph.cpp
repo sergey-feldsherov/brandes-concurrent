@@ -59,7 +59,7 @@ void Graph::loadGraph() {
 
 void Graph::computeBrandes() {
     printf("Running Brandes...\n");
-    ProgressBar computationProgress(edges.size(), "Progress:");
+    ProgressBar computationProgress(vertices.size(), "Progress:");
     auto t = currTimeNano();
 
     for(auto p: edges) {
