@@ -118,10 +118,19 @@ void Graph::computeBrandes() {
         ++computationProgress;
         ++it;
         double time = (currTimeNano() - t) * 1e-9;
+        int total = int(time);
+        int seconds = total % 60;
+        int minutes = total / 60;
+        int hours = minutes / 60;
+        minutes %= 60;
         double avg_speed = it / time;
-        double eta = edges.size() / avg_speed;
+        int etotal = (int) (edges.size() / avg_speed);
+        int eseconds = etotal % 60;
+        int eminutes = etotal / 60;
+        int ehours = eminutes / 60;
+        eminutes %= 60;
         char stats[256];
-        sprintf(stats, "time: %.2lf seconds, eta: %.2lf seconds", time, eta);
+        sprintf(stats, "time: %dh %dm %ds, eta: %dh %dm %ds", hours, minutes, seconds, ehours, eminutes, eseconds);
         computationProgress.updateLastPrintedMessage(std::string(stats));
     }
 
