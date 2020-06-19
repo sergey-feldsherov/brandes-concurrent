@@ -31,9 +31,11 @@ int main(int argc, char **argv) {
 
     Graph g(&globalArgs);
     g.loadGraph();
-    g.computeBrandes();
+    //g.computeBrandes();
+    g.concurrentBrandes(4);
 
-    g.saveBrandesData();
+    //g.saveBrandesData();
+    g.saveConcurrentBrandesData();
 
     return 0;
 }

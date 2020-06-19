@@ -1,8 +1,8 @@
-#include <cassert>
 #include <unordered_set>
 #include <unordered_map>
-#include <list>
 #include <vector>
+#include <thread>
+#include <future>
 
 #include "utils.h"
 #include "ProgressBar.h"
@@ -17,6 +17,8 @@ class Graph {
     std::vector< vertex > vertices;
     std::unordered_map< vertex, std::unordered_set< vertex > > edges;
     std::unordered_map< vertex, double > ranking;
+    std::vector< std::unordered_map< vertex, double > > concurrentRanking;
+    std::vector< std::thread > workers;
 
     globalArgs_t * const args = NULL;
 
@@ -24,15 +26,18 @@ class Graph {
         edges[u0].insert(u1);
     }
 
+    void threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end);
 
  public:
     Graph(globalArgs_t *_args):
         args(_args) {
     }
 
+    void concurrentBrandes(unsigned int threadCount);
     void loadGraph();
     void computeBrandes();
     void saveBrandesData();
+    void saveConcurrentBrandesData();
 };
 
 
