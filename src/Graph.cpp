@@ -139,6 +139,7 @@ void Graph::concurrentBrandes(unsigned int threadCount) {
 
     printf("Starting threads\n");
     unsigned int a = 0, b = 0;
+    concurrentRanking.resize(threadCount);
     for(unsigned int i = 0; i < threadCount; i++) {
         a = b;
         if(i < fullThreads) {
@@ -147,7 +148,7 @@ void Graph::concurrentBrandes(unsigned int threadCount) {
             b += verticesPerThread;
         }
 
-        workers.push_back(std::thread(&Graph::threadFuncBrandes, std::ref(this), i, a, b));
+        workers.push_back(std::thread([this, i, a, b] (){this->threadFuncBrandes(i, a, b);}));
     }
 
     for(auto& t: workers) {
