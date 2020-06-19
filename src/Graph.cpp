@@ -12,8 +12,12 @@
 #include <assert.h>
 
 #include "Graph.h"
-#include "ProgressBar.h"
 #include "utils.h"
+#include <indicators/indeterminate_progress_bar.hpp>
+#include <indicators/block_progress_bar.hpp>
+#include <indicators/dynamic_progress.hpp>
+#include <indicators/cursor_control.hpp>
+#include <indicators/termcolor.hpp>
 
 
 void Graph::loadGraph() {
@@ -27,10 +31,22 @@ void Graph::loadGraph() {
     std::unordered_set< vertex > tmp;
     unsigned int edgeCount = 0;
     unsigned long long t = currTimeNano();
+    indicators::IndeterminateProgressBar bar{
+        indicators::option::BarWidth{30},
+        indicators::option::Start{"["},
+        indicators::option::Fill{"."},
+        indicators::option::Lead{"<>"},
+        indicators::option::End{"]"},
+        indicators::option::PostfixText{"Reading..."},
+        indicators::option::ForegroundColor{indicators::Color::yellow},
+        indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
+    };
+    indicators::show_console_cursor(false);
 
     char* line;
     size_t len = 0;
     vertex v0, v1;
+    auto t_tmp = currTimeNano();
     while(getline(&line, &len, input) != -1) {
         if(line[0] == '#') {
             printf("Encountered a commentary line\n");
@@ -40,6 +56,10 @@ void Graph::loadGraph() {
                 tmp.insert(v0);
                 tmp.insert(v1);
                 edgeCount++;
+                if((currTimeNano() - t_tmp) * 1e-9 > 0.05) {
+                    bar.tick();
+                    t_tmp = currTimeNano();
+                }
             } else {
                 printf("Invalid line: %s\n", line);
                 abort();
@@ -49,6 +69,8 @@ void Graph::loadGraph() {
     if(line) {
         free(line);
     }
+    bar.mark_as_completed();
+    indicators::show_console_cursor(true);
 
     fclose(input);
     t = currTimeNano() - t;
@@ -62,10 +84,24 @@ void Graph::loadGraph() {
 
 void Graph::threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end) {
     //TODO: run Brandes for vertices [begin, ..., end), put result into thread's map in vector of rankings
+    indicators::BlockProgressBar bar{
+        indicators::option::BarWidth{90},
+        indicators::option::Start{"["},
+        indicators::option::End{"]"},
+        //indicators::option::ForegroundColor{indicators::Color::magenta},
+        indicators::option::ShowElapsedTime{true},
+        indicators::option::ShowRemainingTime{true},
+        indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}},
+        indicators::option::MaxProgress{end - begin},
+        indicators::option::PostfixText{"Thread " + std::to_string(id) + ": initialization"}
+    };
+    size_t barID = bars.push_back(bar);
+
     for(auto i = begin; i < end; i++) {
         concurrentRanking[id][vertices[i]] = 0;
     }
 
+    bars[barID].set_option(indicators::option::PostfixText{"Thread " + std::to_string(id) + ": calculation"});
     for(auto i = begin; i < end; i++) {
         auto s = vertices[i];
 
@@ -120,11 +156,16 @@ void Graph::threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int 
                 concurrentRanking[id][w] += delta[w];
             }
         }
+
+        bars[barID].tick();
     }
+
+    bars[barID].mark_as_completed();
 }
 
 
-void Graph::concurrentBrandes(unsigned int threadCount) {
+void Graph::concurrentBrandes() {
+    int threadCount = args->thNum;
     assert(threadCount > 0);
     assert((int) (vertices.size() / threadCount) >= 1 );
 
@@ -137,10 +178,12 @@ void Graph::concurrentBrandes(unsigned int threadCount) {
         fullThreads = threadCount;
     }
 
-    printf("Starting threads\n");
+    printf("Starting threads...\n");
+    indicators::show_console_cursor(false);
+    bars.set_option(indicators::option::HideBarWhenComplete{false});
     unsigned int a = 0, b = 0;
     concurrentRanking.resize(threadCount);
-    for(unsigned int i = 0; i < threadCount; i++) {
+    for(unsigned int i = 0; i < (unsigned int) threadCount; i++) {
         a = b;
         if(i < fullThreads) {
             b += verticesPerThread + 1;
@@ -155,6 +198,7 @@ void Graph::concurrentBrandes(unsigned int threadCount) {
         t.join();
     }
 
+    indicators::show_console_cursor(true);
     printf("Threads joined\n");
 }
 

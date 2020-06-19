@@ -7,6 +7,7 @@ void initArgs(struct globalArgs_t *args) {
     args->debug      = false;
     args->inputFile  = "";
     args->outputFile = "output/output.ranking";
+    args->thNum      = 2;
 
     return;
 }
@@ -22,6 +23,8 @@ void printArgs(struct globalArgs_t *args) {
 
     printf("\tinputFile = %s\n", (args->inputFile).c_str());
     printf("\toutputFile = %s\n", (args->outputFile).c_str());
+
+    printf("\tthNum = %d\n", args->thNum);
 
     return;
 }

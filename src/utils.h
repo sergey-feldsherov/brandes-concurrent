@@ -7,6 +7,7 @@ struct globalArgs_t {
     bool debug;
     std::string inputFile;
     std::string outputFile;
+    int thNum;
 };
 
 void initArgs(struct globalArgs_t *args);
