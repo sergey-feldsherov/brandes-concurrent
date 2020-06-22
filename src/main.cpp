@@ -32,11 +32,13 @@ int main(int argc, char **argv) {
 
     Graph g(&globalArgs);
     g.loadGraph();
-    //g.computeBrandes();
-    g.concurrentBrandes();
-
-    //g.saveBrandesData();
-    g.saveConcurrentBrandesData();
+    if(globalArgs.thNum == 0) {
+        g.computeBrandes();
+        g.saveBrandesData();
+    } else {
+        g.concurrentBrandes();
+        g.saveConcurrentBrandesData();
+    }
 
     return 0;
 }

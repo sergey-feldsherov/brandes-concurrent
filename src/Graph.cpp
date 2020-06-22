@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stack>
 #include <deque>
@@ -82,21 +83,9 @@ void Graph::loadGraph() {
 }
 
 
-void Graph::threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end) {
+void Graph::threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end, size_t barID) {
     //TODO: run Brandes for vertices [begin, ..., end), put result into thread's map in vector of rankings
-    indicators::BlockProgressBar bar{
-        indicators::option::BarWidth{90},
-        indicators::option::Start{"["},
-        indicators::option::End{"]"},
-        //indicators::option::ForegroundColor{indicators::Color::magenta},
-        indicators::option::ShowElapsedTime{true},
-        indicators::option::ShowRemainingTime{true},
-        indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}},
-        indicators::option::MaxProgress{end - begin},
-        indicators::option::PostfixText{"Thread " + std::to_string(id) + ": initialization"}
-    };
-    size_t barID = bars.push_back(bar);
-
+    printf("Thread %u: barID = %lu\n", id, barID);  
     for(auto i = begin; i < end; i++) {
         concurrentRanking[id][vertices[i]] = 0;
     }
@@ -183,6 +172,7 @@ void Graph::concurrentBrandes() {
     bars.set_option(indicators::option::HideBarWhenComplete{false});
     unsigned int a = 0, b = 0;
     concurrentRanking.resize(threadCount);
+    auto t = currTimeNano();
     for(unsigned int i = 0; i < (unsigned int) threadCount; i++) {
         a = b;
         if(i < fullThreads) {
@@ -191,28 +181,70 @@ void Graph::concurrentBrandes() {
             b += verticesPerThread;
         }
 
-        workers.push_back(std::thread([this, i, a, b] (){this->threadFuncBrandes(i, a, b);}));
+        indicators::BlockProgressBar bar{
+            indicators::option::BarWidth{60},
+            indicators::option::Start{"["},
+            indicators::option::End{"]"},
+            indicators::option::ShowElapsedTime{true},
+            indicators::option::ShowRemainingTime{true},
+            indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}},
+            indicators::option::MaxProgress{b - a},
+            indicators::option::PostfixText{"Thread " + std::to_string(i) + ": initialization"}
+        };
+        if(i % 8 == 0) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::grey});
+        } else if(i % 8 == 1) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::red});
+        } else if(i % 8 == 2) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::green});
+        } else if(i % 8 == 3) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::yellow});
+        } else if(i % 8 == 4) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::blue});
+        } else if(i % 8 == 5) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::magenta});
+        } else if(i % 8 == 6) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::cyan});
+        } else if(i % 8 == 7) {
+            bar.set_option(indicators::option::ForegroundColor{indicators::Color::white});
+        }
+        auto barID = bars.push_back(bar);
+        workers.push_back(std::thread([this, i, a, b, barID] (){this->threadFuncBrandes(i, a, b, barID);}));
     }
 
     for(auto& t: workers) {
         t.join();
     }
 
+    t = currTimeNano() - t;
+    std::cout << termcolor::bold << termcolor::green << "Threads joined, user time: " << t * 1e-9 << std::endl;
+    std::cout << termcolor::reset;
     indicators::show_console_cursor(true);
-    printf("Threads joined\n");
+
+    printf("\n");
 }
 
 
 void Graph::computeBrandes() {
     printf("Running Brandes...\n");
-    ProgressBar computationProgress(vertices.size(), "Progress:");
+    indicators::show_console_cursor(false);
+    indicators::BlockProgressBar bar{
+            indicators::option::BarWidth{60},
+            indicators::option::Start{"["},
+            indicators::option::End{"]"},
+            indicators::option::ForegroundColor{indicators::Color::yellow},
+            indicators::option::ShowElapsedTime{true},
+            indicators::option::ShowRemainingTime{true},
+            indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}},
+            indicators::option::MaxProgress{vertices.size()},
+            indicators::option::PrefixText{"Progress:"}
+    };
     auto t = currTimeNano();
 
     for(auto p: edges) {
         ranking[p.first] = 0;
     }
 
-    unsigned int it = 0;
     for(auto s: vertices) {
 
         std::stack< vertex > S;
@@ -266,33 +298,30 @@ void Graph::computeBrandes() {
                 ranking[w] += delta[w];
             }
         }
-        ++computationProgress;
-        ++it;
-        double time = (currTimeNano() - t) * 1e-9;
-        int total = int(time);
-        int seconds = total % 60;
-        int minutes = total / 60;
-        int hours = minutes / 60;
-        minutes %= 60;
-        double avg_speed = it / time;
-        int etotal = (int) (vertices.size() / avg_speed);
-        int eseconds = etotal % 60;
-        int eminutes = etotal / 60;
-        int ehours = eminutes / 60;
-        eminutes %= 60;
-        char stats[256];
-        sprintf(stats, "time: %dh %dm %ds, eta: %dh %dm %ds", hours, minutes, seconds, ehours, eminutes, eseconds);
-        computationProgress.updateLastPrintedMessage(std::string(stats));
+        bar.tick();
     }
 
     t = currTimeNano() - t;
-    computationProgress.endProgressBar();
+    bar.mark_as_completed();
+    indicators::show_console_cursor(false);
     printf("Done (%.3lf seconds)\n", t * 1e-9);
 }
 
 
 void Graph::saveBrandesData() {
-    ProgressBar saveProgress(ranking.size(), "Saving graph data to " + args->outputFile);
+    printf("Saving data to %s\n", args->outputFile.c_str());
+    indicators::show_console_cursor(false);
+    indicators::BlockProgressBar bar{
+            indicators::option::BarWidth{60},
+            indicators::option::Start{"["},
+            indicators::option::End{"]"},
+            indicators::option::ForegroundColor{indicators::Color::yellow},
+            indicators::option::ShowElapsedTime{true},
+            indicators::option::ShowRemainingTime{true},
+            indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}},
+            indicators::option::MaxProgress{ranking.size()},
+            indicators::option::PrefixText{"Save progress:"}
+    };
 
     FILE *output = fopen(args->outputFile.c_str(), "w");
     if(output == NULL) {
@@ -303,12 +332,13 @@ void Graph::saveBrandesData() {
     unsigned long long t = currTimeNano();
     for(auto p: ranking) {
         fprintf(output, "%u %f\n", p.first, p.second);
-        ++saveProgress;
+        bar.tick();
     }
     fclose(output);
     t = currTimeNano() - t;
 
-    saveProgress.endProgressBar();
+    bar.mark_as_completed();
+    indicators::show_console_cursor(true);
 
     printf("File written in %.2lf seconds.\n", t * 1e-9);
 }

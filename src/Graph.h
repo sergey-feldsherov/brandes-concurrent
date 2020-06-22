@@ -2,7 +2,6 @@
 #include <unordered_map>
 #include <vector>
 #include <thread>
-#include <future>
 
 #include "utils.h"
 #include "ProgressBar.h"
@@ -22,7 +21,8 @@ class Graph {
     std::vector< std::unordered_map< vertex, double > > concurrentRanking;
     std::vector< std::thread > workers;
 
-    indicators::DynamicProgress<indicators::BlockProgressBar> bars;
+    indicators::DynamicProgress< indicators::BlockProgressBar > bars;
+    std::vector< size_t > barIDs;
 
     globalArgs_t * const args = NULL;
 
@@ -30,7 +30,7 @@ class Graph {
         edges[u0].insert(u1);
     }
 
-    void threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end);
+    void threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end, size_t barID);
 
  public:
     Graph(globalArgs_t *_args):

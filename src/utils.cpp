@@ -7,7 +7,7 @@ void initArgs(struct globalArgs_t *args) {
     args->debug      = false;
     args->inputFile  = "";
     args->outputFile = "output/output.ranking";
-    args->thNum      = 2;
+    args->thNum      = 0;
 
     return;
 }
