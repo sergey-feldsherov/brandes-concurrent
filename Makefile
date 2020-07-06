@@ -1,11 +1,11 @@
-CFLAGS= -g -O3 -Wall -Isrc/
-CC = g++ -std=c++11 $(CFLAGS)
+CFLAGS= -g -O3 -Wall
+CC = g++ -std=c++17 $(CFLAGS)
 
 
 all: brandes
 
-brandes: build/main.o build/Graph.o build/utils.o build/ProgressBar.o
-	$(CC) -o brandes build/main.o build/Graph.o build/utils.o build/ProgressBar.o -lpthread
+brandes: build/main.o build/Graph.o build/utils.o
+	$(CC) -o brandes build/main.o build/Graph.o build/utils.o -lpthread
 
 build/main.o: src/main.cpp
 	$(CC) -c src/main.cpp -o build/main.o
@@ -15,9 +15,6 @@ build/Graph.o: src/Graph.h src/Graph.cpp
 
 build/utils.o: src/utils.h src/utils.cpp
 	$(CC) -c src/utils.cpp -o build/utils.o
-
-build/ProgressBar.o: src/ProgressBar.h src/ProgressBar.cpp
-	$(CC) -c src/ProgressBar.cpp -o build/ProgressBar.o
 
 clean:
 	rm -f brandes

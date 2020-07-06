@@ -4,9 +4,6 @@
 #include <thread>
 
 #include "utils.h"
-#include "ProgressBar.h"
-#include <indicators/dynamic_progress.hpp>
-#include <indicators/block_progress_bar.hpp>
 
 
 typedef unsigned int vertex;
@@ -21,8 +18,6 @@ class Graph {
     std::vector< std::unordered_map< vertex, double > > concurrentRanking;
     std::vector< std::thread > workers;
 
-    indicators::DynamicProgress< indicators::BlockProgressBar > bars;
-    std::vector< size_t > barIDs;
 
     globalArgs_t * const args = NULL;
 
@@ -30,7 +25,7 @@ class Graph {
         edges[u0].insert(u1);
     }
 
-    void threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end, size_t barID);
+    void threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int end);
 
  public:
     Graph(globalArgs_t *_args):
@@ -41,7 +36,6 @@ class Graph {
     void loadGraph();
     void computeBrandes();
     void saveBrandesData();
-    void saveConcurrentBrandesData();
 };
 
 

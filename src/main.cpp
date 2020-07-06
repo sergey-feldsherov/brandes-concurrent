@@ -19,8 +19,8 @@ int main(int argc, char **argv) {
     struct argp_option options[] = {
         { "debug",   'd',      0, 0, "Debugging information display" },
         { "input",   'i', "FILE", 0, "Input file" },
-        { "output",  'o', "FILE", 0, "Output file"},
-        { "threads", 't',  "NUM", 0, "Number of threads"},
+        { "output",  'o', "FILE", 0, "Output file" },
+        { "threads", 't',  "NUM", 0, "Number of threads: non-positive -> serial, >= 1 -> concurrent with threads allocation" },
         { 0 }
     };
     struct argp argp = { options, parse_opt, 0, 0 };
@@ -32,13 +32,12 @@ int main(int argc, char **argv) {
 
     Graph g(&globalArgs);
     g.loadGraph();
-    if(globalArgs.thNum == 0) {
+    if(globalArgs.thNum <= 0) {
         g.computeBrandes();
-        g.saveBrandesData();
     } else {
         g.concurrentBrandes();
-        g.saveConcurrentBrandesData();
     }
+    g.saveBrandesData();
 
     return 0;
 }
