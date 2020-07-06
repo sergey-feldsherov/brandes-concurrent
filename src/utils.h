@@ -5,6 +5,7 @@
 
 struct globalArgs_t {
     bool debug;
+    bool directed;
     std::string inputFile;
     std::string outputFile;
     int thNum;

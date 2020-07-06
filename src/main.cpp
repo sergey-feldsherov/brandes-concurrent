@@ -17,10 +17,11 @@ int main(int argc, char **argv) {
 
     //create stuff for argp
     struct argp_option options[] = {
-        { "debug",   'd',      0, 0, "Debugging information display" },
-        { "input",   'i', "FILE", 0, "Input file" },
-        { "output",  'o', "FILE", 0, "Output file" },
-        { "threads", 't',  "NUM", 0, "Number of threads: non-positive -> serial, >= 1 -> concurrent with threads allocation" },
+        { "debug",      'd',      0, 0, "Debugging information display" },
+        { "undirected", 'u',      0, 0, "Treat graph as undirected" },
+        { "input",      'i', "FILE", 0, "Input file" },
+        { "output",     'o', "FILE", 0, "Output file" },
+        { "threads",    't',  "NUM", 0, "Number of threads: non-positive -> serial, >= 1 -> concurrent with threads allocation" },
         { 0 }
     };
     struct argp argp = { options, parse_opt, 0, 0 };
@@ -45,6 +46,8 @@ int main(int argc, char **argv) {
 static int parse_opt(int key, char *arg, struct argp_state *state) {
     if(key == 'd') {
         globalArgs.debug = true;
+    } else if(key == 'u') {
+        globalArgs.directed = false;
     } else if(key == 'i') {
         globalArgs.inputFile = arg;
     } else if(key == 'o') {

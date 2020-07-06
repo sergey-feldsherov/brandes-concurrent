@@ -36,6 +36,9 @@ void Graph::loadGraph() {
         } else {
             if(sscanf(line, "%u %u", &v0, &v1) == 2) {
                 addEdge(v0, v1);
+                if(not args->directed) {
+                    addEdge(v1, v0);
+                }
                 tmp.insert(v0);
                 tmp.insert(v1);
                 edgeCount++;

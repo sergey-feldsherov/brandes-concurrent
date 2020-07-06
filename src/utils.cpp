@@ -5,6 +5,7 @@
 
 void initArgs(struct globalArgs_t *args) {
     args->debug      = false;
+    args->directed   = true;
     args->inputFile  = "";
     args->outputFile = "output/output.ranking";
     args->thNum      = 0;
@@ -19,6 +20,12 @@ void printArgs(struct globalArgs_t *args) {
         printf("\tdebug = true\n");
     } else {
         printf("\tdebug = false\n");
+    }
+
+    if(args->directed) {
+        printf("\tdirected = true\n");
+    } else {
+        printf("\tdirected = false\n");
     }
 
     printf("\tinputFile = %s\n", (args->inputFile).c_str());
