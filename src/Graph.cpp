@@ -94,7 +94,11 @@ void Graph::threadFuncBrandes(unsigned int id, unsigned int begin, unsigned int 
             vertex v = Q.front();
             Q.pop_front();
             S.push(v);
-            for(auto w: edges[v]) {
+            auto it = edges.find(v);
+            if(it == edges.end()) {
+                continue;
+            }
+            for(auto w: it->second) {
                 if(d[w] < 0) {
                     Q.push_back(w);
                     d[w] = d[v] + 1;
@@ -211,7 +215,7 @@ void Graph::computeBrandes() {
             vertex v = Q.front();
             Q.pop_front();
             S.push(v);
-            for(auto w: edges[v]) {
+            for(auto w: edges[v]) { //FIXME
                 if(d[w] < 0) {
                     Q.push_back(w);
                     d[w] = d[v] + 1;
