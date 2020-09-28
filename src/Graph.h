@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <vector>
 #include <thread>
+#include <atomic>
 
 #include "utils.h"
 
@@ -21,7 +22,7 @@ class FastGraph {
 
     std::vector< std::vector< double > > threadScores;
 
-    void threadFunction(unsigned int id, unsigned int begin, unsigned int end, std::vector<double>& progressVector);
+    void threadFunction(unsigned int id, std::atomic<unsigned int>& counter);
 
  public:
     FastGraph(globalArgs_t *_args):

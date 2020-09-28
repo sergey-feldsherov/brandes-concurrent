@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <thread>
 #include <assert.h>
+#include <atomic>
+#include <chrono>
 
 #include "Graph.h"
 #include "utils.h"
@@ -36,7 +38,9 @@ void FastGraph::loadGraph() {
     vertex v0, v1;
     while(getline(&line, &len, input) != -1) {
         if(line[0] == '#') {
-            printf("\tEncountered a commentary line\n");
+            if(args->debug) {
+                printf("\tEncountered a commentary line\n");
+            }
         } else {
             if(sscanf(line, "%u %u", &v0, &v1) == 2) {
                 allEdgesMap[v0].insert(v1);
@@ -60,7 +64,7 @@ void FastGraph::loadGraph() {
     vertices = std::vector< vertex >(allVerticesSet.begin(), allVerticesSet.end());
 
     t = currTimeNano() - t;
-    printf("Done (%.2lf seconds)\n", t * 1e-9);
+    printf("Done (%.4lf seconds)\n", t * 1e-9);
     printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
 
     printf("Renumerating graph\n");
@@ -81,8 +85,8 @@ void FastGraph::loadGraph() {
     }
     indices[vertices.size()] = csr.size();
 
-    printf("Done (%.2lf seconds)\n", (currTimeNano() - t1) * 1e-9);
-    printf("Total loading time: %.2lf seconds\n", (currTimeNano() - t0) * 1e-9);
+    printf("Done (%.4lf seconds)\n", (currTimeNano() - t1) * 1e-9);
+    printf("Total loading time: %.4lf seconds\n", (currTimeNano() - t0) * 1e-9);
 
     /*
     printf("Forward renumeration:\n");
@@ -126,9 +130,10 @@ void FastGraph::loadGraph() {
 
 void FastGraph::serialBrandes() {
     printf("\nRunning serial Brandes\n");
+    auto t = currTimeNano();
     ProgressBar bar;
     bar.setMax(vertices.size() - 1);
-    auto t = currTimeNano();
+    bar.start();
 
     scores.resize(vertices.size(), 0.0);
 
@@ -185,66 +190,69 @@ void FastGraph::serialBrandes() {
     bar.finish();
 
     t = currTimeNano() - t;
-    printf("Done (%.3lf seconds)\n", t * 1e-9);
+    printf("Done (%.4lf seconds)\n", t * 1e-9);
 }
 
 
 void FastGraph::threadedBrandes() {
     printf("\nRunning threaded Brandes\n");
+    unsigned long long t0 = currTimeNano();
 
-    int threadCount = args->thNum;
-    assert(threadCount > 0);
-    assert((int) (vertices.size() / threadCount) >= 1 );
+    std::atomic<unsigned int> counter(0);
 
     scores.resize(vertices.size(), 0.);
     threadScores.resize(args->thNum, std::vector< double >(vertices.size(), 0.));
-    std::vector< double > progressVector(args->thNum, 0.);
     std::vector< std::thread > workers;
 
-    unsigned int fullThreads, rest, verticesPerThread;
-    rest = vertices.size() % threadCount;
-    verticesPerThread = vertices.size() / threadCount;
-    if(rest != 0) {
-        fullThreads = rest;
-    } else {
-        fullThreads = threadCount;
-    }
-
     printf("Starting threads\n");
-    unsigned int a = 0, b = 0;
-    for(unsigned int i = 0; i < (unsigned int) threadCount; i++) {
-        a = b;
-        if(i < fullThreads) {
-            b += verticesPerThread + 1;
-        } else {
-            b += verticesPerThread;
+    for(unsigned int i = 0; i < (unsigned int) args->thNum; i++) {
+        if(args->debug) {
+            printf("\tStarting thread %d\n", i);
         }
-
-        workers.push_back(std::thread([this, i, a, b, &progressVector] (){this->threadFunction(i, a, b, progressVector);}));
+        workers.push_back(std::thread([this, i, &counter] (){this->threadFunction(i, counter);}));
     }
     printf("Threads started\n");
+
+    ProgressBar bar;
+    bar.setMax(vertices.size() - 1);
+    bar.start();
+    while(not bar.isFinished()) {
+        bar.setCurrent(counter.load());
+        bar.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    bar.finish();
 
     for(auto& t: workers) {
         t.join();
     }
     printf("Threads joined\n");
 
+    printf("Reducing scores\n");
     for(unsigned int i = 0; i < vertices.size(); i++) {
         for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
             scores[i] += threadScores[j][i];
         }
-    } 
+    }
+    printf("Scores array reduced\n");
+
+    unsigned long long t = currTimeNano() - t0;
+    printf("Total work time: %.4lf seconds\n", t * 1e-9);
 }
 
 
-void FastGraph::threadFunction(unsigned int id, unsigned int begin, unsigned int end, std::vector< double >& progressVector) {
+void FastGraph::threadFunction(unsigned int id, std::atomic< unsigned int >& counter) {
 
-    for(unsigned int s = 0; s < vertices.size(); s++) {
+    while(true) {
+        unsigned int s = counter.fetch_add(1);
+        if(s >= vertices.size()) {
+            break;
+        }
 
         std::stack< int > S;
         assert(S.empty());
 
-        std::vector< std::vector< int > > P(vertices.size());
+        std::vector< std::vector< int > > P(vertices.size(), std::vector< int >());
 
         std::vector< unsigned int > sigma(vertices.size(), 0);
         sigma[s] = 1;
@@ -287,7 +295,6 @@ void FastGraph::threadFunction(unsigned int id, unsigned int begin, unsigned int
             }
         }
 
-        progressVector[id] += 1.0;
     }
 }
 

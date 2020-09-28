@@ -1,60 +1,77 @@
 #include <iostream>
 #include <string>
+
 #include "utils.h"
+
+
+void convert(double total, char* str) {
+    sprintf(str, "%.2lfs", total);
+}
 
 class ProgressBar {
 public:
-    char p_begin = '[';
-    char p_fill = '=';
-    char p_lead = '>';
-    char p_rest = '.';
-    char p_end = ']';
+    char begin = '[';
+    char fill = '=';
+    char lead = '>';
+    char rest = '.';
+    char end = ']';
 
-    double p_min = 0.;
-    double p_max = 100.;
-    double p_current = 0.;
-    double p_step = 1.0;
+    double min = 0.;
+    double max = 100.;
+    double current = 0.;
+    double step = 1.0;
 
-    unsigned int p_width = 60;
-    unsigned long long p_t0 = 0;
+    bool finished = false;
 
-    ProgressBar() {
-        p_t0 = currTimeNano();
+    unsigned int width = 35;
+    unsigned long long t0 = 0;
+
+
+    void start() {
+        t0 = currTimeNano();
     }
 
     void update() {
         std::string progressLine = "\r";
 
-        double completedPercentage = (p_current - p_min) / (p_max - p_min);
+        double completedPercentage = (current - min) / (max - min);
         char str[256];
         sprintf(str, "%d%%", (int) (completedPercentage * 100.));
         progressLine += str;
 
-        progressLine += p_begin;
-        for(unsigned int i = 0; i < (unsigned int) p_width * completedPercentage; i++) {
-            progressLine += p_fill;
+        progressLine += begin;
+        for(unsigned int i = 0; i < (unsigned int) width * completedPercentage; i++) {
+            progressLine += fill;
         }
         if(completedPercentage < 1.0) {
-            progressLine += p_lead;
-            for(unsigned int i = ((unsigned int) (p_width * completedPercentage)) + 1; i < p_width; i++) {
-                progressLine += p_rest;
+            progressLine += lead;
+            for(unsigned int i = ((unsigned int) (width * completedPercentage)) + 1; i < width; i++) {
+                progressLine += rest;
             }
         }
-        progressLine += p_end;
+        progressLine += end;
 
-        double timeSpentSeconds = (double) (currTimeNano() - p_t0) * (double) 1e-9;
+        double timeSpentSeconds = (double) (currTimeNano() - t0) * (double) 1e-9;
         double etaSeconds = timeSpentSeconds / completedPercentage;
-        double iterationsPerSecond = (p_current - p_min) / timeSpentSeconds;
-        sprintf(str, " %d/%d [%.2fs<%.2fs, %.1fit/s]", (int)(p_current-p_min), (int)(p_max-p_min), timeSpentSeconds, etaSeconds, iterationsPerSecond);
+        double iterationsPerSecond = (current - min) / timeSpentSeconds;
+        char spentTime[256];
+        char estimatedTime[256];
+        convert(timeSpentSeconds, spentTime);
+        convert(etaSeconds, estimatedTime);
+        sprintf(str, " %u/%u [%s<%s, %.2fit/s]", (unsigned int)(current-min), (unsigned int)(max-min), spentTime, estimatedTime, iterationsPerSecond);
         progressLine += str;
 
         //printf("%s", progressLine.c_str());
         //std::cout << progressLine;
         fprintf(stderr, "%s", progressLine.c_str());
+
+        if(current >= max) {
+            finished = true;
+        }
     }
 
     void tick() {
-        setCurrent(p_current + p_step);
+        setCurrent(current + step);
         update();
     }
 
@@ -64,21 +81,29 @@ public:
     }
 
     void setCurrent(double newCurrent) {
-        if(newCurrent  >= p_min && newCurrent <= p_max) {
-            p_current = newCurrent;
+        if(newCurrent  >= min && newCurrent <= max) {
+            current = newCurrent;
+        } else if(newCurrent > max) {
+            current = max;
+        } else if(newCurrent < min) {
+            current = min;
         }
     }
 
     void setMin(double newMin) {
-        if(newMin < p_max) {
-            p_min = newMin;
+        if(newMin < max) {
+            min = newMin;
         }
     }
 
     void setMax(double newMax) {
-        if(newMax > p_min) {
-            p_max = newMax;
+        if(newMax > min) {
+            max = newMax;
         }
+    }
+
+    bool isFinished() {
+        return finished;
     }
 
 };
