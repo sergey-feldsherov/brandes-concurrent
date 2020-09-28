@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     if(globalArgs.thNum <= 0) {
         fg.serialBrandes();
     } else {
-        printf("Parallel Brandes is not written yet.\n");
+        fg.threadedBrandes();
     }
     fg.saveResult();
 

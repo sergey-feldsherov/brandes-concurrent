@@ -19,6 +19,10 @@ class FastGraph {
     std::vector< double > scores;
     globalArgs_t * const args = NULL;
 
+    std::vector< std::vector< double > > threadScores;
+
+    void threadFunction(unsigned int id, unsigned int begin, unsigned int end, std::vector<double>& progressVector);
+
  public:
     FastGraph(globalArgs_t *_args):
         args(_args) {
@@ -26,7 +30,7 @@ class FastGraph {
 
     void loadGraph();
     void serialBrandes();
-    void threadedBrandes(); //TODO
+    void threadedBrandes();
     void saveResult();
 };
 

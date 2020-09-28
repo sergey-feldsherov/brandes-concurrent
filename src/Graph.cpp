@@ -60,10 +60,10 @@ void FastGraph::loadGraph() {
     vertices = std::vector< vertex >(allVerticesSet.begin(), allVerticesSet.end());
 
     t = currTimeNano() - t;
-    printf("\tDone (%.2lf seconds)\n", t * 1e-9);
-    printf("\tVertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
+    printf("Done (%.2lf seconds)\n", t * 1e-9);
+    printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
 
-    printf("\tRenumerating graph\n");
+    printf("Renumerating graph\n");
     unsigned long long t1 = currTimeNano();
 
     indices.resize(vertices.size() + 1);
@@ -81,7 +81,7 @@ void FastGraph::loadGraph() {
     }
     indices[vertices.size()] = csr.size();
 
-    printf("\tDone (%.2lf seconds)\n", (currTimeNano() - t1) * 1e-9);
+    printf("Done (%.2lf seconds)\n", (currTimeNano() - t1) * 1e-9);
     printf("Total loading time: %.2lf seconds\n", (currTimeNano() - t0) * 1e-9);
 
     /*
@@ -192,13 +192,14 @@ void FastGraph::serialBrandes() {
 void FastGraph::threadedBrandes() {
     printf("\nRunning threaded Brandes\n");
 
-    for(auto v: vertices) {
-        ranking[v] = 0.;
-    }
-
     int threadCount = args->thNum;
     assert(threadCount > 0);
     assert((int) (vertices.size() / threadCount) >= 1 );
+
+    scores.resize(vertices.size(), 0.);
+    threadScores.resize(args->thNum, std::vector< double >(vertices.size(), 0.));
+    std::vector< double > progressVector(args->thNum, 0.);
+    std::vector< std::thread > workers;
 
     unsigned int fullThreads, rest, verticesPerThread;
     rest = vertices.size() % threadCount;
@@ -211,8 +212,6 @@ void FastGraph::threadedBrandes() {
 
     printf("Starting threads\n");
     unsigned int a = 0, b = 0;
-    concurrentRanking.resize(threadCount);
-    auto t = currTimeNano();
     for(unsigned int i = 0; i < (unsigned int) threadCount; i++) {
         a = b;
         if(i < fullThreads) {
@@ -221,14 +220,75 @@ void FastGraph::threadedBrandes() {
             b += verticesPerThread;
         }
 
-        workers.push_back(std::thread([this, i, a, b] (){this->threadFuncBrandes(i, a, b);}));
+        workers.push_back(std::thread([this, i, a, b, &progressVector] (){this->threadFunction(i, a, b, progressVector);}));
     }
-    printf("Threads started, waiting for join\n");
+    printf("Threads started\n");
 
     for(auto& t: workers) {
         t.join();
     }
     printf("Threads joined\n");
+
+    for(unsigned int i = 0; i < vertices.size(); i++) {
+        for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
+            scores[i] += threadScores[j][i];
+        }
+    } 
+}
+
+
+void FastGraph::threadFunction(unsigned int id, unsigned int begin, unsigned int end, std::vector< double >& progressVector) {
+
+    for(unsigned int s = 0; s < vertices.size(); s++) {
+
+        std::stack< int > S;
+        assert(S.empty());
+
+        std::vector< std::vector< int > > P(vertices.size());
+
+        std::vector< unsigned int > sigma(vertices.size(), 0);
+        sigma[s] = 1;
+
+        std::vector< int > d(vertices.size(), -1);
+        d[s] = 0;
+
+        std::deque< int > Q;
+        assert(Q.empty());
+        Q.push_back(s);
+
+        while(not Q.empty()) {
+            int v = Q.front();
+            Q.pop_front();
+            S.push(v);
+            int st = indices[v];
+            int fn = indices[v + 1];
+            for(int w = st; w < fn; w++) {
+                int neighbour = csr[w];
+                if(d[neighbour] < 0) {
+                    Q.push_back(neighbour);
+                    d[neighbour] = d[v] + 1;
+                }
+                if(d[neighbour] == d[v] + 1) {
+                    sigma[neighbour] += sigma[v];
+                    P[neighbour].push_back(v);
+                }
+            }
+        }
+
+        std::vector< double > delta(vertices.size(), 0.);
+        while(not S.empty()) {
+            vertex w = S.top();
+            S.pop();
+            for(auto v: P[w]) {
+                delta[v] += (sigma[v] / sigma[w]) * (1. + delta[w]);
+            }
+            if( w != s ) {
+                threadScores[id][w] += delta[w];
+            }
+        }
+
+        progressVector[id] += 1.0;
+    }
 }
 
 
