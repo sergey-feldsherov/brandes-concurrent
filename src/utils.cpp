@@ -4,11 +4,14 @@
 #include "utils.h"
 
 void initArgs(struct globalArgs_t *args) {
-    args->debug      = false;
-    args->directed   = true;
-    args->inputFile  = "";
-    args->outputFile = "output/output.ranking";
-    args->thNum      = 0;
+    args->debug           = false;
+    args->directed         = true;
+    args->inputFile        = "";
+    args->outputFile       = "output/output.ranking";
+    args->thNum            = 0;
+    args->startID          = 0;
+    args->finishID         = 0;
+    args->autosaveInterval = 0;
 
     return;
 }
@@ -32,6 +35,11 @@ void printArgs(struct globalArgs_t *args) {
     printf("\toutputFile = %s\n", (args->outputFile).c_str());
 
     printf("\tthNum = %d\n", args->thNum);
+
+    printf("\tstartID = %u\n", args->startID);
+    printf"\tfinishID = %u\n", args->finishID);
+
+    printf("\tautosaveInterval = %u\n", args->autosaveInterval);
 
     return;
 }

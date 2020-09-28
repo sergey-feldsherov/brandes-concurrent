@@ -10,7 +10,7 @@ globalArgs_t globalArgs;
 static int parse_opt(int key, char *arg, struct argp_state *state);
 
 int main(int argc, char **argv) {
-    //setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "");
 
     //init globalArgs (fill default values)
     initArgs(&globalArgs);
@@ -22,6 +22,9 @@ int main(int argc, char **argv) {
         { "input",      'i', "FILE", 0, "Input file" },
         { "output",     'o', "FILE", 0, "Output file" },
         { "threads",    't',  "NUM", 0, "Number of threads: non-positive -> serial, >= 1 -> concurrent with threads allocation" },
+        { "start",      's',   "ID", 0, "Starting vertex id for calculating contributions" },
+        { "finish",     'f',   "ID", 0, "Finishing vertex id for calculating contributions" },
+        { "autosave",   'a',  "MIN", 0, "Time interval in minutes between part-way saves of calculation result" },
         { 0 }
     };
     struct argp argp = { options, parse_opt, 0, 0 };
@@ -65,7 +68,14 @@ static int parse_opt(int key, char *arg, struct argp_state *state) {
         globalArgs.outputFile = arg;
     } else if(key == 't') {
         globalArgs.thNum = atoi(arg);
+    } else if(key == 's') {
+        globalArgs.startID = atoi(arg);
+    } else if(key == 'f') {
+        globalArgs.finishID = atoi(arg);
+    } else if(key == 'a') {
+        globalArgs.autosaveInterval = atoi(arg);
     }
+
     return 0;
 }
 

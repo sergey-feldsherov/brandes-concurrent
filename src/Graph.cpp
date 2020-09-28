@@ -136,8 +136,9 @@ void FastGraph::serialBrandes() {
     bar.start();
 
     scores.resize(vertices.size(), 0.0);
+    assert(args->startID < args->finishID);
 
-    for(unsigned int s = 0; s < vertices.size(); s++) {
+    for(unsigned int s = args->startID; s < args->finishID; s++) {
 
         std::stack< int > S;
         assert(S.empty());
@@ -209,7 +210,7 @@ void FastGraph::threadedBrandes() {
         if(args->debug) {
             printf("\tStarting thread %d\n", i);
         }
-        workers.push_back(std::thread([this, i, &counter] (){this->threadFunction(i, counter);}));
+        workers.push_back(std::thread([this, i, args->startID, args->finishID, &counter] (){this->threadFunction(i, args->startID, args->finishID, counter);}));
     }
     printf("Threads started\n");
 

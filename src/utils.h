@@ -9,6 +9,9 @@ struct globalArgs_t {
     std::string inputFile;
     std::string outputFile;
     int thNum;
+    unsigned int startID;
+    unsigned int finishID;
+    unsigned int autosaveInterval;
 };
 
 void initArgs(struct globalArgs_t *args);
