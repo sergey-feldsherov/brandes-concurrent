@@ -10,6 +10,27 @@ typedef unsigned int vertex;
 typedef std::pair<vertex, vertex> edge;
 
 
+class FastGraph {
+ private:
+    std::vector< vertex > vertices;
+    std::unordered_map< vertex, int > renumerationTable;
+    std::vector< int > indices;
+    std::vector< vertex > csr;
+    std::vector< double > scores;
+    globalArgs_t * const args = NULL;
+
+ public:
+    FastGraph(globalArgs_t *_args):
+        args(_args) {
+    }
+
+    void loadGraph();
+    void serialBrandes();
+    void threadedBrandes(); //TODO
+    void saveResult();
+};
+
+
 class Graph {
  private:
     std::vector< vertex > vertices;

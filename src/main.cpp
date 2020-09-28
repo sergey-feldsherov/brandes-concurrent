@@ -31,6 +31,16 @@ int main(int argc, char **argv) {
     if(globalArgs.debug)
         printArgs(&globalArgs);
 
+    FastGraph fg(&globalArgs);
+    fg.loadGraph();
+    if(globalArgs.thNum <= 0) {
+        fg.serialBrandes();
+    } else {
+        printf("Parallel Brandes is not written yet.\n");
+    }
+    fg.saveResult();
+
+    /*
     Graph g(&globalArgs);
     g.loadGraph();
     if(globalArgs.thNum <= 0) {
@@ -39,6 +49,7 @@ int main(int argc, char **argv) {
         g.concurrentBrandes();
     }
     g.saveBrandesData();
+    */
 
     return 0;
 }

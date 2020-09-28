@@ -10,7 +10,7 @@ brandes: build/main.o build/Graph.o build/utils.o
 build/main.o: src/main.cpp
 	$(CC) -c src/main.cpp -o build/main.o
 
-build/Graph.o: src/Graph.h src/Graph.cpp
+build/Graph.o: src/Graph.h src/Graph.cpp src/ProgressBar.h
 	$(CC) -c src/Graph.cpp -o build/Graph.o -lpthread
 
 build/utils.o: src/utils.h src/utils.cpp
