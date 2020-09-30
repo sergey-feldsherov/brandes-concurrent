@@ -37,7 +37,7 @@ void printArgs(struct globalArgs_t *args) {
     printf("\tthNum = %d\n", args->thNum);
 
     printf("\tstartID = %u\n", args->startID);
-    printf"\tfinishID = %u\n", args->finishID);
+    printf("\tfinishID = %u\n", args->finishID);
 
     printf("\tautosaveInterval = %u\n", args->autosaveInterval);
 
@@ -46,6 +46,6 @@ void printArgs(struct globalArgs_t *args) {
 
 unsigned long long currTimeNano()   {
     struct timespec t;
-    clock_gettime ( CLOCK_MONOTONIC, &t );
+    clock_gettime (CLOCK_MONOTONIC, &t);
     return t.tv_sec*1000000000 + t.tv_nsec;
 }

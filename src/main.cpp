@@ -3,6 +3,7 @@
 #include <locale.h> // setlocale to enable thousands delimeter in output
 
 #include "Graph.h"
+#include "FastGraph.h"
 #include "utils.h"
 
 globalArgs_t globalArgs;
