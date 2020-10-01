@@ -12,6 +12,7 @@ void initArgs(struct globalArgs_t *args) {
     args->startID          = 0;
     args->finishID         = 0;
     args->autosaveInterval = 0;
+    args->norenumeration   = false;
 
     return;
 }
@@ -40,6 +41,11 @@ void printArgs(struct globalArgs_t *args) {
     printf("\tfinishID = %u\n", args->finishID);
 
     printf("\tautosaveInterval = %u\n", args->autosaveInterval);
+    if(args->norenumeration) {
+        printf("\tnorenumeration = true\n");
+    } else {
+        printf("\tnorenumeration = false\n");
+    }
 
     return;
 }

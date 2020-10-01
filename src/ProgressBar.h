@@ -22,11 +22,11 @@ private:
     std::atomic<bool> timeToUpdate;
     std::atomic<bool> timeToStop;
 
-    char begin = '[';
+    char begin = '|';
     char fill = '=';
     char lead = '>';
     char rest = '.';
-    char end = ']';
+    char end = '|';
 
     double min = 0.;
     double max = 100.;

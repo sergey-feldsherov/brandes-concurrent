@@ -12,6 +12,7 @@ struct globalArgs_t {
     unsigned int startID;
     unsigned int finishID;
     unsigned int autosaveInterval;
+    bool norenumeration;
 };
 
 void initArgs(struct globalArgs_t *args);

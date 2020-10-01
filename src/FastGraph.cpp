@@ -56,26 +56,53 @@ void FastGraph::loadGraph() {
     printf("Done (%.4lf seconds)\n", t * 1e-9);
     printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
 
-    printf("Renumerating graph\n");
     unsigned long long t1 = currTimeNano();
+    if(args->norenumeration) {//TODO: this case can be optimized
+        printf("Constructing CSR without renumeration\n");
 
-    indices.resize(vertices.size() + 1);
-    csr.reserve(vertices.size());
-    for(unsigned int idx = 0; idx < vertices.size(); idx++) {
-        renumerationTable[vertices[idx]] = idx;
-    }
-    int currPosition = 0;
-    for(unsigned int idx = 0; idx < vertices.size(); idx++) {
-        indices[idx] = currPosition;
-	for(auto vrtx: allEdgesMap[vertices[idx]]) {
-            csr.push_back(renumerationTable[vrtx]);
+        indices.resize(vertices.size() + 1);
+        csr.reserve(vertices.size());
+        for(unsigned int i = 0; i < vertices.size(); i++) {
+            vertices[i] = i;
+            renumerationTable[i] = i;
         }
-        currPosition += allEdgesMap[vertices[idx]].size();
+        int currPosition = 0;
+        for(unsigned int idx = 0; idx < vertices.size(); idx++) {
+            indices[idx] = currPosition;
+	        for(auto vrtx: allEdgesMap[vertices[idx]]) {
+                csr.push_back(renumerationTable[vrtx]);
+            }
+            currPosition += allEdgesMap[vertices[idx]].size();
+        }
+        indices[vertices.size()] = csr.size();
+
+    } else {
+        printf("Renumerating graph\n");
+
+        indices.resize(vertices.size() + 1);
+        csr.reserve(vertices.size());
+        for(unsigned int idx = 0; idx < vertices.size(); idx++) {
+            renumerationTable[vertices[idx]] = idx;
+        }
+        int currPosition = 0;
+        for(unsigned int idx = 0; idx < vertices.size(); idx++) {
+            indices[idx] = currPosition;
+	        for(auto vrtx: allEdgesMap[vertices[idx]]) {
+                csr.push_back(renumerationTable[vrtx]);
+            }
+            currPosition += allEdgesMap[vertices[idx]].size();
+        }
+        indices[vertices.size()] = csr.size();
+
     }
-    indices[vertices.size()] = csr.size();
 
     printf("Done (%.4lf seconds)\n", (currTimeNano() - t1) * 1e-9);
     printf("Total loading time: %.4lf seconds\n", (currTimeNano() - t0) * 1e-9);
+
+    if(args->finishID == 0) {
+        args->finishID = vertices.size();
+        printf("Upper interval border not specified, Brandes will be run from %u to %lu\n", args->startID, vertices.size());
+    }
 
     /*
     printf("Forward renumeration:\n");
@@ -117,8 +144,8 @@ void FastGraph::loadGraph() {
 }
 
 void FastGraph::serialBrandes() {
-    printf("\nRunning serial Brandes\n");
     assert(args->startID < args->finishID);
+    printf("\nRunning serial Brandes for vertices in interval [%u, %u).\n", args->startID, args->finishID);
 
     auto t = currTimeNano();
     ProgressBar bar;
@@ -185,7 +212,8 @@ void FastGraph::serialBrandes() {
 
 
 void FastGraph::threadedBrandes() {
-    printf("\nRunning threaded Brandes\n");
+    assert(args->startID < args->finishID);
+    printf("\nRunning threaded Brandes for vertices in interval [%u, %u).\n", args->startID, args->finishID);
     unsigned long long t0 = currTimeNano();
 
     std::atomic<unsigned int> counter(args->startID);
