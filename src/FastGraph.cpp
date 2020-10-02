@@ -254,6 +254,13 @@ void FastGraph::threadedBrandes() {
 
             //pause progress bar
 
+            //reduce scores
+           for(unsigned int i = 0; i < vertices.size(); i++) {
+               for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
+                   scores[i] += threadScores[j][i];
+               }
+           }
+
             //save
             std::string name = "output/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
             saveResult(name);

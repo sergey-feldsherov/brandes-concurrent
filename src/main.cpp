@@ -11,7 +11,7 @@ globalArgs_t globalArgs;
 static int parse_opt(int key, char *arg, struct argp_state *state);
 
 int main(int argc, char **argv) {
-    setlocale(LC_ALL, "");
+    //setlocale(LC_ALL, "");
 
     //init globalArgs (fill default values)
     initArgs(&globalArgs);
