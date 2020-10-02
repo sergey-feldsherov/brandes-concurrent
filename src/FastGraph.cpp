@@ -2,6 +2,7 @@
 #include <stack>
 #include <thread>
 #include <unordered_set>
+#include <chrono>
 
 #include "FastGraph.h"
 #include "ProgressBar.h"
@@ -221,6 +222,8 @@ void FastGraph::threadedBrandes() {
     scores.resize(vertices.size(), 0.);
     threadScores.resize(args->thNum, std::vector< double >(vertices.size(), 0.));
     std::vector< std::thread > workers;
+    std::atomic<bool> shouldBeRunning(true);
+    std::atomic<unsigned int> runningThreads(0);
     unsigned int sID = args->startID;
     unsigned int fID = args->finishID;
 
@@ -229,10 +232,11 @@ void FastGraph::threadedBrandes() {
         if(args->debug) {
             printf("\tStarting thread %d\n", i);
         }
-        workers.push_back(std::thread([this, i, sID, fID, &counter] (){this->threadFunction(i, sID, fID, counter);}));
+        workers.push_back(std::thread([this, i, sID, fID, &counter, &shouldBeRunning, &runningThreads] (){this->threadFunction(i, sID, fID, counter, shouldBeRunning, runningThreads);}));
     }
     printf("Threads started\n");
 
+    std::chrono::time_point<std::chrono::high_resolution_clock> previousTime = std::chrono::high_resolution_clock::now();
     ProgressBar bar;
     bar.setMax(args->finishID - args->startID);
     bar.start();
@@ -240,6 +244,25 @@ void FastGraph::threadedBrandes() {
     while(cntrVal < args->finishID) {
         cntrVal = counter.load();
         bar.setCurrent(cntrVal);
+
+        std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
+        double dt = std::chrono::duration<double>(currentTime - previousTime).count();
+        if(args->autosaveInterval > 0. && dt >= 60. * args->autosaveInterval) {
+            //pause threads
+            shouldBeRunning.store(false);
+            while(runningThreads.load() > 0) {}
+
+            //pause progress bar
+
+            //save
+            std::string name = "output/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
+            saveResult(name);
+
+            //reset time, unpause
+            previousTime = std::chrono::high_resolution_clock::now();
+            shouldBeRunning.store(true);
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     bar.finish();
@@ -262,7 +285,8 @@ void FastGraph::threadedBrandes() {
 }
 
 
-void FastGraph::threadFunction(unsigned int id, unsigned int startID, unsigned int endID, std::atomic< unsigned int >& counter) {
+void FastGraph::threadFunction(unsigned int id, unsigned int startID, unsigned int endID, std::atomic< unsigned int >& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads) {
+    runningThreads.fetch_add(1);
 
     while(true) {
         unsigned int s = counter.fetch_add(1);
@@ -316,16 +340,26 @@ void FastGraph::threadFunction(unsigned int id, unsigned int startID, unsigned i
             }
         }
 
+        if(not shouldBeRunning.load()) {
+            runningThreads.fetch_sub(1);
+            while(not shouldBeRunning.load()) {}
+            runningThreads.fetch_add(1);
+        }
+
     }
 }
 
 
-void FastGraph::saveResult() {
-    printf("\nSaving data to %s\n", args->outputFile.c_str());
+void FastGraph::saveResult(std::string str) {
+    if(str == "") {
+        str = args->outputFile;
+    }
 
-    FILE *output = fopen(args->outputFile.c_str(), "w");
+    printf("\nSaving data to %s\n", str.c_str());
+
+    FILE *output = fopen(str.c_str(), "w");
     if(output == NULL) {
-        printf("Unable to open output file: %s.\n", args->outputFile.c_str());
+        printf("Unable to open output file: %s.\n", str.c_str());
         return;
     }
 

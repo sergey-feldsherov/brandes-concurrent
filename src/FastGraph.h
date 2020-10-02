@@ -1,12 +1,12 @@
 #include <unordered_map>
 #include <vector>
 #include <atomic>
+#include <string>
 
 #include "utils.h"
 
 
 typedef unsigned int vertex;
-typedef std::pair<vertex, vertex> edge;
 
 
 class FastGraph {
@@ -20,7 +20,7 @@ class FastGraph {
 
     std::vector< std::vector< double > > threadScores;
 
-    void threadFunction(unsigned int id, unsigned int startIndex, unsigned int finishIndex, std::atomic<unsigned int>& counter);
+    void threadFunction(unsigned int id, unsigned int startIndex, unsigned int finishIndex, std::atomic<unsigned int>& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads);
 
  public:
     FastGraph(globalArgs_t *_args):
@@ -30,5 +30,5 @@ class FastGraph {
     void loadGraph();
     void serialBrandes();
     void threadedBrandes();
-    void saveResult();
+    void saveResult(std::string = "");
 };
