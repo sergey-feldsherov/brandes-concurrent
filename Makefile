@@ -2,7 +2,7 @@ CFLAGS= -g -O3 -Wall
 CC = g++ -std=c++17 $(CFLAGS)
 
 
-all: brandes
+all: brandes renumerate
 
 brandes: build/main.o build/Graph.o build/FastGraph.o build/utils.o build/ProgressBar.o
 	$(CC) -o brandes build/main.o build/Graph.o build/FastGraph.o build/utils.o build/ProgressBar.o -lpthread
@@ -22,8 +22,14 @@ build/utils.o: src/utils.h src/utils.cpp
 build/ProgressBar.o: src/ProgressBar.h src/ProgressBar.cpp
 	$(CC) -c src/ProgressBar.cpp -o build/ProgressBar.o -lpthread
 
+renumerate: build/renumerate.o
+	$(CC) -o renumerate build/renumerate.o
+
+build/renumerate.o: src/renumerate.cpp
+	$(CC) -c src/renumerate.cpp -o build/renumerate.o
+
 clean:
-	rm -f brandes
+	rm -f brandes renumerate
 	cd build; rm -f *.o
 	find * -name \*~ -delete
 

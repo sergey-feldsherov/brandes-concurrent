@@ -1,5 +1,6 @@
 *.o
 brandes
+renumerate
 *~
 *.txt
 *.graph
