@@ -38,7 +38,7 @@ void ProgressBar::tick() {
 }
 
 void ProgressBar::setCurrent(double newCurrent) {
-    if(newCurrent != current) {
+    if(newCurrent > current || newCurrent < current) {
         if(newCurrent  >= min && newCurrent <= max) {
             current = newCurrent;
         } else if(newCurrent > max) {
@@ -119,7 +119,7 @@ void ProgressBar::update() {
     sprintf(str, " %u/%u [%s<%s, %.2fit/s]", (unsigned int)(current-min), (unsigned int)(max-min), spentTime, estimatedTime, iterationsPerSecond);
     progressLine += str;
 
-    progressLine += "\e[K";//This ANSI control sequence erases part of current line from cursor position until the end of the line.
+    progressLine += "\033[K";//This control sequence erases part of current line from cursor position until the end of the line, \e is the GNU shortcut for \033.
     fprintf(stderr, "%s", progressLine.c_str());//Printing to stderr to evade cursor blinking and potential mess if IO is redirected to file.
 
     if(current >= max) {

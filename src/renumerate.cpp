@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
     t = currTimeNano() - t;
     printf("Done (%.4lf seconds)\n", t * 1e-9);
-    printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
+    printf("Vertices: %lu, edges: %u\n", vertices.size(), edgeCount);
 
     std::string renumeratedPath = inputPath + ".renumerated";
     printf("\nSaving data to %s\n", renumeratedPath.c_str());

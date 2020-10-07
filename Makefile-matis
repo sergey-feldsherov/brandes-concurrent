@@ -1,11 +1,13 @@
-CFLAGS= -g -O3 -W -Wall -Wunused -Wcast-align -pedantic -pedantic-errors -fstack-protector-all -Wfloat-equal -Wpointer-arith
-CC = g++ -std=c++17 $(CFLAGS)
+CFLAGS= -g -gdwarf-2 -O3 -W -Wall -Wunused -Wcast-align -pedantic -pedantic-errors -fstack-protector-all -Wfloat-equal -Wpointer-arith
+#CC = g++ -std=c++11 $(CFLAGS)
+
+CC = /opt/gcc-5.2.0/bin/g++ -std=c++11 $(CFLAGS)
 
 
 all: brandes renumerate
 
 brandes: build/main.o build/Graph.o build/FastGraph.o build/utils.o build/ProgressBar.o
-	$(CC) -o brandes build/main.o build/Graph.o build/FastGraph.o build/utils.o build/ProgressBar.o -lpthread
+	$(CC) -o brandes build/main.o build/Graph.o build/FastGraph.o build/utils.o build/ProgressBar.o -pthread -lrt -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive 
 
 build/main.o: src/main.cpp
 	$(CC) -c src/main.cpp -o build/main.o
@@ -23,7 +25,7 @@ build/ProgressBar.o: src/ProgressBar.h src/ProgressBar.cpp
 	$(CC) -c src/ProgressBar.cpp -o build/ProgressBar.o
 
 renumerate: build/renumerate.o
-	$(CC) -o renumerate build/renumerate.o
+	$(CC) -o renumerate build/renumerate.o -lrt
 
 build/renumerate.o: src/renumerate.cpp
 	$(CC) -c src/renumerate.cpp -o build/renumerate.o

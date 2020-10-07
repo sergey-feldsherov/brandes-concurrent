@@ -20,7 +20,7 @@ class FastGraph {
 
     std::vector< std::vector< double > > threadScores;
 
-    void threadFunction(unsigned int id, unsigned int startIndex, unsigned int finishIndex, std::atomic<unsigned int>& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads);
+    void threadFunction(unsigned int id, unsigned int finishIndex, std::atomic<unsigned int>& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads);
 
  public:
     FastGraph(globalArgs_t *_args):

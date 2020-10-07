@@ -58,7 +58,7 @@ void Graph::loadGraph() {
 
     t = currTimeNano() - t;
     printf("Done (%.2lf seconds)\n", t * 1e-9);
-    printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
+    printf("Vertices: %lu, edges: %u\n", vertices.size(), edgeCount);
 }
 
 

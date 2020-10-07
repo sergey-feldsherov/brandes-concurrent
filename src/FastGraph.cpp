@@ -55,7 +55,7 @@ void FastGraph::loadGraph() {
 
     t = currTimeNano() - t;
     printf("Done (%.4lf seconds)\n", t * 1e-9);
-    printf("Vertices: %'lu, edges: %'u\n", vertices.size(), edgeCount);
+    printf("Vertices: %lu, edges: %u\n", vertices.size(), edgeCount);
 
     unsigned long long t1 = currTimeNano();
     if(args->norenumeration) {//TODO: this case can be optimized
@@ -224,7 +224,6 @@ void FastGraph::threadedBrandes() {
     std::vector< std::thread > workers;
     std::atomic<bool> shouldBeRunning(true);
     std::atomic<unsigned int> runningThreads(0);
-    unsigned int sID = args->startID;
     unsigned int fID = args->finishID;
 
     printf("Starting threads\n");
@@ -232,7 +231,7 @@ void FastGraph::threadedBrandes() {
         if(args->debug) {
             printf("\tStarting thread %d\n", i);
         }
-        workers.push_back(std::thread([this, i, sID, fID, &counter, &shouldBeRunning, &runningThreads] (){this->threadFunction(i, sID, fID, counter, shouldBeRunning, runningThreads);}));
+        workers.push_back(std::thread([this, i, fID, &counter, &shouldBeRunning, &runningThreads] (){this->threadFunction(i, fID, counter, shouldBeRunning, runningThreads);}));
     }
     printf("Threads started\n");
 
@@ -292,7 +291,7 @@ void FastGraph::threadedBrandes() {
 }
 
 
-void FastGraph::threadFunction(unsigned int id, unsigned int startID, unsigned int endID, std::atomic< unsigned int >& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads) {
+void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic< unsigned int >& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads) {
     runningThreads.fetch_add(1);
 
     while(true) {
