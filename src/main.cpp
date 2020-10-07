@@ -43,7 +43,9 @@ int main(int argc, char **argv) {
     } else {
         fg.threadedBrandes();
     }
-    fg.saveResult();
+
+    std::string name = "output/" + std::to_string(globalArgs.startID) + "-" + std::to_string(globalArgs.finishID) + ".final" + ".txt";
+    fg.saveResult(name);
 
     /*
     Graph g(&globalArgs);
