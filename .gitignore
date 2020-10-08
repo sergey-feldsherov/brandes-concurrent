@@ -1,6 +1,7 @@
 *.o
 brandes
 renumerate
+reduce
 *~
 *.txt
 *.graph
