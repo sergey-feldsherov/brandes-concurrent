@@ -247,24 +247,29 @@ void FastGraph::threadedBrandes() {
         std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
         double dt = std::chrono::duration<double>(currentTime - previousTime).count();
         if(args->autosaveInterval > 0. && dt >= 60. * args->autosaveInterval) {
+            //pause progress bar
+            bar.setMessage(std::string("Pausing threads"), true);
+
             //pause threads
             shouldBeRunning.store(false);
             while(runningThreads.load() > 0) {}
 
-            //pause progress bar
 
             //reduce scores
-           for(unsigned int i = 0; i < vertices.size(); i++) {
-               for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
-                   scores[i] += threadScores[j][i];
-               }
-           }
+            bar.setMessage(std::string("Reducing scores"), true);
+            for(unsigned int i = 0; i < vertices.size(); i++) {
+                for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
+                    scores[i] += threadScores[j][i];
+                }
+            }
 
             //save
-            std::string name = "output/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
-            saveResult(name);
+            std::string name = "./output/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
+            bar.setMessage(std::string("Saving to " + name), true);
+            saveResult(name, true);
 
             //reset time, unpause
+            bar.setMessage(std::string("Restarting threads"), true);
             previousTime = std::chrono::high_resolution_clock::now();
             shouldBeRunning.store(true);
         }
@@ -356,16 +361,20 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
 }
 
 
-void FastGraph::saveResult(std::string str) {
+void FastGraph::saveResult(std::string str, bool noPrinting) {
     if(str == "") {
         str = args->outputFile;
     }
 
-    printf("\nSaving data to %s\n", str.c_str());
+    if(not noPrinting) {
+        printf("\nSaving data to %s\n", str.c_str());
+    }
 
     FILE *output = fopen(str.c_str(), "w");
     if(output == NULL) {
-        printf("Unable to open output file: %s.\n", str.c_str());
+        if(not noPrinting) {
+            printf("Unable to open output file: %s.\n", str.c_str());
+        }
         return;
     }
 
@@ -376,5 +385,7 @@ void FastGraph::saveResult(std::string str) {
     fclose(output);
 
     t = currTimeNano() - t;
-    printf("Done (%.5lf seconds)\n", t * 1e-9);
+    if(not noPrinting) {
+        printf("Done (%.5lf seconds)\n", t * 1e-9);
+    }
 }

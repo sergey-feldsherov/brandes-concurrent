@@ -22,15 +22,29 @@ void ProgressBar::setMax(double newMax) {
     }
 }
 
+void ProgressBar::setMessage(std::string msg, bool forceRedraw) {
+    message = msg;
+    if(forceRedraw) {
+        forceUpdate();
+    }
+}
+
 void ProgressBar::start() {
     assert(not threadRunning);
 
+    t0 = std::chrono::high_resolution_clock::now();
     timeToStop.store(false);
     timeToUpdate.store(true);
     finished = false;
+
     printingThread = std::thread([this] (){this->loop();});
 
     threadRunning = true;
+}
+
+void ProgressBar::forceUpdate() {
+    timeToUpdate.store(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
 }
 
 void ProgressBar::tick() {
@@ -47,7 +61,7 @@ void ProgressBar::setCurrent(double newCurrent) {
             current = min;
         }
         if(threadRunning) {
-            timeToUpdate.store(true);
+            forceUpdate();
         }
     }
 }
@@ -69,7 +83,6 @@ ProgressBar::~ProgressBar() {
 
 
 void ProgressBar::loop() {
-    t0 = std::chrono::high_resolution_clock::now();
 
     while(true) {
         if(timeToUpdate.load()) {
@@ -77,17 +90,33 @@ void ProgressBar::loop() {
             timeToUpdate.store(false);
         }
         if(timeToStop.load() || finished) {
+            statusMessage = "finished";
             update();
             fprintf(stderr, "\n");
             break;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(75));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
 
 void ProgressBar::update() {
-    std::string progressLine = "\r";
+    /* It looks like this:
+    Some message
+    Some other message
+    [Status: running]
+    27%|==>       | 493/1821 [01m38s<06m11s, 5.03it/s]
+    */
+    std::string progressLine = "\033[1F";//Move the cursor to the beginning of previous line
+
+    if(message != "") {
+        progressLine += message + "\033[K\n";
+        message = "";
+    }
+
+    progressLine += "[Status: ";
+    progressLine += statusMessage + "]";
+    progressLine += "\033[K\n";//Erase remainder of line and move cursor to the beginning of next line
 
     double completedPercentage = (current - min) / (max - min);
     char str[256];

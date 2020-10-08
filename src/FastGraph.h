@@ -30,5 +30,5 @@ class FastGraph {
     void loadGraph();
     void serialBrandes();
     void threadedBrandes();
-    void saveResult(std::string = "");
+    void saveResult(std::string = "", bool noPrinting = false);
 };

@@ -2,6 +2,7 @@
 #include <atomic>
 #include <thread>
 #include <chrono>
+#include <string>
 
 
 class ProgressBar {
@@ -9,7 +10,9 @@ public:
     ProgressBar();
     void setMin(double);
     void setMax(double);
+    void setMessage(std::string msg, bool forceUpdate = false);
     void start();
+    void forceUpdate();
     void tick();
     void setCurrent(double);
     void finish();
@@ -21,6 +24,9 @@ private:
 
     std::atomic<bool> timeToUpdate;
     std::atomic<bool> timeToStop;
+
+    std::string message = "";
+    std::string statusMessage = "running";
 
     char begin = '|';
     char fill = '=';
