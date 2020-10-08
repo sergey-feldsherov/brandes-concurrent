@@ -1,6 +1,5 @@
 #include <argp.h>
 #include <stdlib.h> // atoi, atof
-#include <locale.h> // setlocale to enable thousands delimeter in output
 
 #include "Graph.h"
 #include "FastGraph.h"
@@ -11,7 +10,6 @@ globalArgs_t globalArgs;
 static int parse_opt(int key, char *arg, struct argp_state *state);
 
 int main(int argc, char **argv) {
-    //setlocale(LC_ALL, "");
 
     //init globalArgs (fill default values)
     initArgs(&globalArgs);
@@ -21,7 +19,7 @@ int main(int argc, char **argv) {
         { "debug",      'd',      0, 0,                                                         "Debugging information display" },
         { "undirected", 'u',      0, 0,                                                             "Treat graph as undirected" },
         { "input",      'i', "FILE", 0,                                                                            "Input file" },
-        { "output",     'o', "FILE", 0,                                                                           "Output file" },
+        { "output",     'o', "FILE", 0,                                                                      "Output directory" },
         { "threads",    't',  "NUM", 0,           "Number of threads: <=0 - serial, >= 1 -> concurrent with threads allocation" },
         { "start",      's',   "ID", 0,                      "Starting vertex id for calculating contributions, first included" },
         { "finish",     'f',   "ID", 0,                  "Finishing vertex id for calculating contributions, last not included" },
@@ -69,7 +67,7 @@ static int parse_opt(int key, char *arg, struct argp_state *state) {
     } else if(key == 'i') {
         globalArgs.inputFile = arg;
     } else if(key == 'o') {
-        globalArgs.outputFile = arg;
+        globalArgs.outputDir = arg;
     } else if(key == 't') {
         globalArgs.thNum = atoi(arg);
     } else if(key == 's') {

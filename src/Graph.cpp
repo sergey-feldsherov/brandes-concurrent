@@ -1,5 +1,5 @@
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <stack>
 #include <deque>
 #include <unordered_map>
@@ -250,11 +250,12 @@ void Graph::computeBrandes() {
 
 
 void Graph::saveBrandesData() {
-    printf("\nSaving data to %s\n", args->outputFile.c_str());
+    std::string outputPath = args->outputDir + "/result.txt";
+    printf("\nSaving data to %s\n", outputPath.c_str());
 
-    FILE *output = fopen(args->outputFile.c_str(), "w");
+    FILE *output = fopen(outputPath.c_str(), "w");
     if(output == NULL) {
-        printf("Unable to open output file: %s.\n", args->outputFile.c_str());
+        printf("Unable to open output file: %s.\n", outputPath.c_str());
         return;
     }
 

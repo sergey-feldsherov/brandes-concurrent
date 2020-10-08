@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <string>
+#include <deque>
 
 
 class ProgressBar {
@@ -27,6 +28,9 @@ private:
 
     std::string message = "";
     std::string statusMessage = "running";
+    std::deque<double> etaFilter;
+    size_t filterSize = 10;
+    double updateIntervalMilliseconds = 50.;
 
     char begin = '|';
     char fill = '=';

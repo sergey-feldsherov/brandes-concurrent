@@ -7,7 +7,7 @@ struct globalArgs_t {
     bool debug;
     bool directed;
     std::string inputFile;
-    std::string outputFile;
+    std::string outputDir;
     int thNum;
     unsigned int startID;
     unsigned int finishID;

@@ -1,13 +1,13 @@
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 #include "utils.h"
 
 void initArgs(struct globalArgs_t *args) {
-    args->debug           = false;
+    args->debug            = false;
     args->directed         = true;
     args->inputFile        = "";
-    args->outputFile       = "output/output.ranking";
+    args->outputDir        = "./output";
     args->thNum            = 0;
     args->startID          = 0;
     args->finishID         = 0;
@@ -33,7 +33,7 @@ void printArgs(struct globalArgs_t *args) {
     }
 
     printf("\tinputFile = %s\n", (args->inputFile).c_str());
-    printf("\toutputFile = %s\n", (args->outputFile).c_str());
+    printf("\toutputDir = %s\n", (args->outputDir).c_str());
 
     printf("\tthNum = %d\n", args->thNum);
 

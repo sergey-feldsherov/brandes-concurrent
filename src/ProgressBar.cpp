@@ -1,8 +1,14 @@
-#include <thread>
 #include <cassert>
-#include <cmath> //for floor()
+#include <cmath> //for floor() and max()
+#include <cstdio>
 
 #include "ProgressBar.h"
+
+unsigned long long threadCurrTimeNano() {
+  struct timespec t;
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t);
+  return t.tv_sec*1000000000 + t.tv_nsec;
+}
 
 ProgressBar::ProgressBar() {
     //
@@ -36,6 +42,7 @@ void ProgressBar::start() {
     timeToStop.store(false);
     timeToUpdate.store(true);
     finished = false;
+    fprintf(stderr, "\n");
 
     printingThread = std::thread([this] (){this->loop();});
 
@@ -83,11 +90,13 @@ ProgressBar::~ProgressBar() {
 
 
 void ProgressBar::loop() {
+    auto t_0 = threadCurrTimeNano();
 
     while(true) {
-        if(timeToUpdate.load()) {
-            update();
+        if(timeToUpdate.load() || ((double)(threadCurrTimeNano() - t_0))*1e-7 >= updateIntervalMilliseconds) {
             timeToUpdate.store(false);
+            update();
+            t_0 = threadCurrTimeNano();
         }
         if(timeToStop.load() || finished) {
             statusMessage = "finished";
@@ -95,7 +104,6 @@ void ProgressBar::loop() {
             fprintf(stderr, "\n");
             break;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
@@ -138,14 +146,39 @@ void ProgressBar::update() {
     std::chrono::time_point<std::chrono::high_resolution_clock> thisTime = std::chrono::high_resolution_clock::now();
     double dt = std::chrono::duration<double>(thisTime - lastTime).count();
     double totalTimeSpentSeconds = std::chrono::duration<double>(thisTime - t0).count();
-    double iterationsPerSecond = (finished)?((current - min) / totalTimeSpentSeconds) : ((current - previous) / dt);
-    //double etaSeconds = totalTimeSpentSeconds / completedPercentage;
-    double etaSeconds = totalTimeSpentSeconds + (max - current) / iterationsPerSecond;
+    double iterationsPerSecond = 0.;
+    if(finished) {
+        iterationsPerSecond = (current - min) / totalTimeSpentSeconds;
+    } else {
+        iterationsPerSecond = (current - previous) / dt;
+    }
+    double etaSeconds = 0.;
+    if(iterationsPerSecond > 0.) {
+        etaSeconds = totalTimeSpentSeconds + (max - current) / iterationsPerSecond;
+    } else {
+        etaSeconds = totalTimeSpentSeconds / ((completedPercentage > 0.) ? completedPercentage : 1.);
+    }
+    double filteredEta = 0.;
+    etaFilter.push_back(etaSeconds);
+    if(etaFilter.size() > filterSize) {
+        etaFilter.pop_front();
+        for(double x: etaFilter) {
+            filteredEta += x;
+        }
+        filteredEta = filteredEta / ((double) etaFilter.size());
+    }
+    //printf("it/s = %lf, total = %lf, comp = %lf%%\n\n\n", iterationsPerSecond, totalTimeSpentSeconds, completedPercentage);
+
     char spentTime[256];
     char estimatedTime[256];
     timeConvert(totalTimeSpentSeconds, spentTime);
-    timeConvert(etaSeconds, estimatedTime);
-    sprintf(str, " %u/%u [%s<%s, %.2fit/s]", (unsigned int)(current-min), (unsigned int)(max-min), spentTime, estimatedTime, iterationsPerSecond);
+    timeConvert(filteredEta, estimatedTime);
+
+    if(finished) {
+        sprintf(str, " %u/%u [in %s, avg %.2fit/s]", (unsigned int)(current-min), (unsigned int)(max-min), spentTime, iterationsPerSecond);
+    } else {
+        sprintf(str, " %u/%u [%s<%s, %.2fit/s]", (unsigned int)(current-min), (unsigned int)(max-min), spentTime, estimatedTime, iterationsPerSecond);
+    }
     progressLine += str;
 
     progressLine += "\033[K";//This control sequence erases part of current line from cursor position until the end of the line, \e is the GNU shortcut for \033.

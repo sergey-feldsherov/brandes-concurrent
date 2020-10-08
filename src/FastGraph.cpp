@@ -3,6 +3,7 @@
 #include <thread>
 #include <unordered_set>
 #include <chrono>
+#include <cstdio>
 
 #include "FastGraph.h"
 #include "ProgressBar.h"
@@ -225,6 +226,7 @@ void FastGraph::threadedBrandes() {
     std::atomic<bool> shouldBeRunning(true);
     std::atomic<unsigned int> runningThreads(0);
     unsigned int fID = args->finishID;
+    std::string saveFileName = "";
 
     printf("Starting threads\n");
     for(unsigned int i = 0; i < (unsigned int) args->thNum; i++) {
@@ -247,13 +249,10 @@ void FastGraph::threadedBrandes() {
         std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
         double dt = std::chrono::duration<double>(currentTime - previousTime).count();
         if(args->autosaveInterval > 0. && dt >= 60. * args->autosaveInterval) {
-            //pause progress bar
+            //pause progress bar and threads
             bar.setMessage(std::string("Pausing threads"), true);
-
-            //pause threads
             shouldBeRunning.store(false);
             while(runningThreads.load() > 0) {}
-
 
             //reduce scores
             bar.setMessage(std::string("Reducing scores"), true);
@@ -263,10 +262,19 @@ void FastGraph::threadedBrandes() {
                 }
             }
 
+            //remove older save file
+            if(saveFileName != "") {
+                if(remove(saveFileName.c_str()) == 0) {
+                    bar.setMessage(std::string("Removed last save file at " + saveFileName), true);
+                } else {
+                    bar.setMessage(std::string("Error while removing last save file at " + saveFileName), true);
+                }
+            }
+
             //save
-            std::string name = "./output/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
-            bar.setMessage(std::string("Saving to " + name), true);
-            saveResult(name, true);
+            saveFileName = args->outputDir + "/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
+            bar.setMessage(std::string("Saving to " + saveFileName), true);
+            saveResult(saveFileName, true);
 
             //reset time, unpause
             bar.setMessage(std::string("Restarting threads"), true);
@@ -282,6 +290,12 @@ void FastGraph::threadedBrandes() {
         t.join();
     }
     printf("Threads joined\n");
+
+    if(remove(saveFileName.c_str()) == 0) {
+        printf("Removed last save file at %s\n", saveFileName.c_str());
+    } else {
+        printf("Error while removing last save file at %s\n", saveFileName.c_str());
+    }
 
     printf("Reducing scores\n");
     for(unsigned int i = 0; i < vertices.size(); i++) {
@@ -363,7 +377,7 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
 
 void FastGraph::saveResult(std::string str, bool noPrinting) {
     if(str == "") {
-        str = args->outputFile;
+        str = args->outputDir + "/result.txt";
     }
 
     if(not noPrinting) {
