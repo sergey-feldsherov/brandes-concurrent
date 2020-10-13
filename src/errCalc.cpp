@@ -4,17 +4,32 @@
 #include <cassert>
 #include <string>
 #include <cmath> //fabs(), fmax(), sqrt()
+#include <argp.h>
+
+static int parse_opt(int key, char *arg, struct argp_state *state);
+
+struct Args {
+	std::string file1;
+	std::string file2;
+};
+
+Args my_args;
 
 int main(int argc, char** argv) {
-	assert(argc = 3);
 
-	std::string file1 = argv[1];
-	std::string file2 = argv[2];
+    struct argp_option options[] = {
+        {  "file1",  -1, "FILE", 0,  "Path to first file" },
+        {  "file2",  -2, "FILE", 0, "Path to second file" },
+        { 0 }
+    };
+    struct argp argp = {options, parse_opt, 0, 0};
+    argp_parse(&argp, argc, argv, 0, 0, 0);
+
 	std::ifstream ifs;
 
-	std::cout << "Reading file \"" << file1 << "\"\n";
+	std::cout << "Reading file \"" << my_args.file1 << "\"\n";
 	std::unordered_map<unsigned int, double> data1;
-	ifs.open(file1);
+	ifs.open(my_args.file1);
 	while(ifs.peek() != EOF) {
 		char line[256];
 		ifs.getline(line, 256);
@@ -31,9 +46,9 @@ int main(int argc, char** argv) {
 	ifs.close();
 	std::cout << "Vertices: " << data1.size() << "\n";
 
-	std::cout << "Reading file \"" << file2 << "\"\n";
+	std::cout << "Reading file \"" << my_args.file2 << "\"\n";
 	std::unordered_map<unsigned int, double> data2;
-	ifs.open(file2);
+	ifs.open(my_args.file2);
 	while(ifs.peek() != EOF) {
 		char line[256];
 		ifs.getline(line, 256);
@@ -68,4 +83,15 @@ int main(int argc, char** argv) {
 	std::cout << "L2: \t" << sqrt(sumSquareErr) << " (Euclidean)\n";
 	std::cout << "L" << "\u221E" << ": \t" << maxErr << " (max absolute value)\n";
 
+}
+
+
+static int parse_opt(int key, char *arg, struct argp_state *state) {
+    if(key == -1) {
+        my_args.file1 = arg;
+    } else if(key == -1) {
+        my_args.file2 = arg;
+    }
+
+    return 0;
 }

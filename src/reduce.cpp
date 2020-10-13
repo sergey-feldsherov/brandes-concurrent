@@ -1,41 +1,53 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cassert>
 #include <dirent.h>
 #include <vector>
 #include <unordered_map>
+#include <argp.h>
+
+static int parse_opt(int key, char *arg, struct argp_state *state);
+
+struct Args {
+	std::string inputDirectory;
+    std::string suffix;
+    std::string outputFile;
+};
+
+Args my_args;
 
 int main(int argc, char** argv) {
-	assert(argc <= 2);
 
-	std::string indir;
-	if(argc == 1) {
-		indir = "./";
-	} else {
-		indir = argv[1];
-		if(indir.back() != '/') {
-			indir.append("/");
-		}
+    struct argp_option options[] = {
+        {  "indir", 'i',    "DIR", 0, "Path to directory with input files" },
+        { "suffix", 's', "SUFFIX", 0,   "Suffix to look for in file names" },
+        { "output", 'o',   "FILE", 0,                "Path to output file" },
+        { 0 }
+    };
+    struct argp argp = {options, parse_opt, 0, 0};
+    argp_parse(&argp, argc, argv, 0, 0, 0);
+
+    if(my_args.inputDirectory.back() != '/') {
+		my_args.inputDirectory.append("/");
 	}
-	std::cout << "Looking for .txt files in \"" << indir << "\"\n";
+
+	std::cout << "Looking for .txt files in \"" << my_args.inputDirectory << "\"\n";
 
 	std::vector<std::string> filesVec;
 
 	DIR *dir;
 	struct dirent *ent;
-	if((dir = opendir(indir.c_str())) != NULL) {
+	if((dir = opendir(my_args.inputDirectory.c_str())) != NULL) {
 		while((ent = readdir(dir)) != NULL) {
-			std::string newFileName = ent->d_name;
-			std::string suffix = ".txt";
-			if(newFileName.length() >= 4 && newFileName.compare(newFileName.length() - suffix.length(), suffix.length(), suffix) == 0) {
-				filesVec.push_back(indir + ent->d_name);
+			std::string fname = ent->d_name;
+			if(fname.length() >= my_args.suffix.length() && fname.compare(fname.length() - my_args.suffix.length(), my_args.suffix.length(), my_args.suffix) == 0) {
+				filesVec.push_back(my_args.inputDirectory + ent->d_name);
 			}
 		}
 		closedir(dir);
 	} else {
-		std::cout << "Unable to open directory \"" << indir << "\"\n";
-		return -1;
+		std::cout << "Unable to open directory \"" << my_args.inputDirectory << "\"\n";
+		abort();
 	}
 
 	if(filesVec.size() == 0) {
@@ -79,6 +91,19 @@ int main(int argc, char** argv) {
 	std::cout << "Finished\n";
 
 	return 0;
+}
+
+
+static int parse_opt(int key, char *arg, struct argp_state *state) {
+    if(key == 'i') {
+        my_args.inputDirectory = arg;
+    } else if(key == 's') {
+        my_args.suffix = arg;
+    } else if(key == 'o') {
+        my_args.outputFile = arg;
+    }
+
+    return 0;
 }
 
 

@@ -1,36 +1,49 @@
 #include <stdio.h>
-#include <cassert>
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <argp.h>
 
-typedef unsigned int vertex;
+static int parse_opt(int key, char *arg, struct argp_state *state);
+
+struct Args {
+	std::string inputFile;
+    std::string outputFile;
+};
+
+Args my_args;
 
 unsigned long long currTimeNano();
 
 int main(int argc, char **argv) {
-    assert(argc == 2);
+
+    struct argp_option options[] = {
+        {  "input", 'i', "FILE", 0, "Path to input file" },
+        { "output", 'o', "FILE", 0, "Path to output file" },
+        { 0 }
+    };
+    struct argp argp = {options, parse_opt, 0, 0};
+    argp_parse(&argp, argc, argv, 0, 0, 0);
 
     auto t0 = currTimeNano();
 
-    std::string inputPath = argv[1];
-    printf("Reading graph from %s\n", inputPath.c_str());
+    printf("Reading graph from %s\n", my_args.inputFile.c_str());
 
-    FILE *input = fopen(inputPath.c_str(), "r");
+    FILE *input = fopen(my_args.inputFile.c_str(), "r");
     if(input == NULL) {
-        printf("\tUnable to open input file: %s.\n", inputPath.c_str());
+        printf("\tUnable to open input file: %s.\n", my_args.inputFile.c_str());
         abort();
     }
 
-    std::unordered_set< vertex > allVerticesSet;
-    std::unordered_map< vertex, std::unordered_set< vertex > > allEdgesMap;
+    std::unordered_set< unsigned int > allVerticesSet;
+    std::unordered_map< unsigned int, std::unordered_set< unsigned int > > allEdgesMap;
     unsigned int edgeCount = 0;
     auto t = currTimeNano();
 
     char* line = NULL;
     size_t len = 0;
-    vertex v0, v1;
+    unsigned int v0, v1;
     while(getline(&line, &len, input) != -1) {
         if(line[0] == '#') {
             printf("\tEncountered a commentary line\n");
@@ -52,8 +65,8 @@ int main(int argc, char **argv) {
     }
     fclose(input);
 
-    std::vector< vertex > vertices = std::vector< vertex >(allVerticesSet.begin(), allVerticesSet.end());
-	std::unordered_map< vertex, unsigned int > renumerationTable;
+    std::vector< unsigned int > vertices = std::vector< unsigned int >(allVerticesSet.begin(), allVerticesSet.end());
+	std::unordered_map< unsigned int, unsigned int > renumerationTable;
     for(unsigned int i = 0; i < vertices.size(); i++) {
         renumerationTable[vertices[i]] = i;
     }
@@ -62,7 +75,7 @@ int main(int argc, char **argv) {
     printf("Done (%.4lf seconds)\n", t * 1e-9);
     printf("Vertices: %lu, edges: %u\n", vertices.size(), edgeCount);
 
-    std::string renumeratedPath = inputPath + ".renumerated";
+    std::string renumeratedPath = my_args.outputFile + ".renumerated";
     printf("\nSaving data to %s\n", renumeratedPath.c_str());
 
     FILE *output = fopen(renumeratedPath.c_str(), "w");
@@ -83,7 +96,7 @@ int main(int argc, char **argv) {
     printf("Done (%.5lf seconds)\n", t * 1e-9);
 
 
-    std::string old2newPath = inputPath + ".old2new";
+    std::string old2newPath = my_args.outputFile + ".old2new";
     printf("\nSaving data to %s\n", old2newPath.c_str());
 
     output = fopen(old2newPath.c_str(), "w");
@@ -101,7 +114,7 @@ int main(int argc, char **argv) {
     t = currTimeNano() - t;
     printf("Done (%.5lf seconds)\n", t * 1e-9);
 
-    std::string new2oldPath = inputPath + ".new2old";
+    std::string new2oldPath = my_args.outputFile + ".new2old";
     printf("\nSaving data to %s\n", new2oldPath.c_str());
 
     output = fopen(new2oldPath.c_str(), "w");
@@ -124,8 +137,21 @@ int main(int argc, char **argv) {
 
 }
 
+
 unsigned long long currTimeNano() {
     struct timespec t;
     clock_gettime (CLOCK_MONOTONIC, &t);
     return t.tv_sec*1000000000 + t.tv_nsec;
 }
+
+
+static int parse_opt(int key, char *arg, struct argp_state *state) {
+    if(key == 'i') {
+        my_args.inputFile = arg;
+    } else if(key == 'o') {
+        my_args.outputFile = arg;
+    }
+
+    return 0;
+}
+
