@@ -74,19 +74,21 @@ int main(int argc, char** argv) {
         size_t len = 0;
         unsigned int vertex;
         double score;
+        unsigned int numLines = 0;
         while(getline(&line, &len, input) != -1) {
             if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
-                reducedScores[vertex] = score;
+                reducedScores[vertex] += score;
             } else {
                 printf("\tInvalid line: \"%s\" in file \"%s\", aborting\n", line, name.c_str());
                 abort();
             }
+            numLines++;
         }
         if(line) {
             free(line);
         }
         fclose(input);
-		printf("\t%s (%.2lf s)\n", name.c_str(), (currTimeNano() - timeFileReadingStart)*1e-9);
+		printf("\t%s - %u lines (%.2lf s)\n", name.c_str(), numLines, (currTimeNano() - timeFileReadingStart)*1e-9);
 	}
 	printf("Done (%.2lf s)\n", (currTimeNano() - timeReadingStart)*1e-9);
 
