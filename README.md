@@ -13,5 +13,8 @@ Additionally, a data reduction step is introduced after threads are joined.
 
 ## TODO
 
-* Change thread pausing from workaround method to condvars
-* Add timer to ProgressBar, change its tick() and changeCurrent() methods to condvars as well
+* Switch to inhouse argument-parsing solution
+* Solve workarounds used for thread pausing
+* Switch to thread pool with task queue for better concurrency
+* Refactor ProgressBar
+* 
