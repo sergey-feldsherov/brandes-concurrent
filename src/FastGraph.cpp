@@ -291,10 +291,12 @@ void FastGraph::threadedBrandes() {
     }
     printf("Threads joined\n");
 
-    if(remove(saveFileName.c_str()) == 0) {
-        printf("Removed last save file at %s\n", saveFileName.c_str());
-    } else {
-        printf("Error while removing last save file at %s\n", saveFileName.c_str());
+    if(saveFileName != "") {
+        if(remove(saveFileName.c_str()) == 0) {
+            printf("Removed last save file at %s\n", saveFileName.c_str());
+        } else {
+            printf("Error while removing last save file at %s\n", saveFileName.c_str());
+        }
     }
 
     printf("Reducing scores\n");

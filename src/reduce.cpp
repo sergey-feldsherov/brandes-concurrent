@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 			if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
                 reducedScores[vertex] += score;
             } else {
-                printf("\tInvalid line: %s\n", line);
+                std::cout << "\tInvalid line: " << line << "\n";
 				ifs.close();
                 abort();
             }
