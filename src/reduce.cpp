@@ -1,22 +1,23 @@
-#include <iostream>
-#include <fstream>
+#include <cstdio>
 #include <string>
 #include <dirent.h>
 #include <vector>
 #include <unordered_map>
 #include <argp.h>
 
+unsigned long long currTimeNano();
 static int parse_opt(int key, char *arg, struct argp_state *state);
 
 struct Args {
-	std::string inputDirectory;
-    std::string suffix;
-    std::string outputFile;
+	std::string inputDirectory = "./input/";
+    std::string suffix = ".txt";
+    std::string outputFile = "./output/reduced.txt";
 };
 
 Args my_args;
 
 int main(int argc, char** argv) {
+    auto t0 = currTimeNano();
 
     struct argp_option options[] = {
         {  "indir", 'i',    "DIR", 0, "Path to directory with input files" },
@@ -31,10 +32,9 @@ int main(int argc, char** argv) {
 		my_args.inputDirectory.append("/");
 	}
 
-	std::cout << "Looking for .txt files in \"" << my_args.inputDirectory << "\"\n";
-
+    auto timeLookupStart = currTimeNano();
+	printf("Looking for \"*%s\" files in \"%s\"\n", my_args.suffix.c_str(), my_args.inputDirectory.c_str());
 	std::vector<std::string> filesVec;
-
 	DIR *dir;
 	struct dirent *ent;
 	if((dir = opendir(my_args.inputDirectory.c_str())) != NULL) {
@@ -46,50 +46,64 @@ int main(int argc, char** argv) {
 		}
 		closedir(dir);
 	} else {
-		std::cout << "Unable to open directory \"" << my_args.inputDirectory << "\"\n";
+		printf("Unable to open directory \"%s\", aborting\n", my_args.inputDirectory.c_str());
 		abort();
 	}
 
+    printf("Done (%.2lf s)\n", (currTimeNano() - timeLookupStart)*1e-9);
 	if(filesVec.size() == 0) {
-		std::cout << "Found 0 .txt files\n";
+		printf("Found 0 \"*%s\" files\n", my_args.suffix.c_str());
 		return 0;
 	}
-	std::cout << "Found " << filesVec.size() << " .txt files:\n";
+	printf("Found %lu \"*%s\" files:\n", filesVec.size(), my_args.suffix.c_str());
 	for(auto name: filesVec) {
-		std::cout << "\t" << name << "\n";
+		printf("\t%s\n", name.c_str());
 	}
 
+    auto timeReadingStart = currTimeNano();
+	printf("Reading files:\n");
 	std::unordered_map<unsigned int, double> reducedScores;
 	for(auto name: filesVec) {
-		std::cout << "Reading file " << name << "\n";
-		std::ifstream ifs;
-		ifs.open(name);
-		while(ifs.peek() != EOF) {
-			char line[256];
-			ifs.getline(line, 256);
-			unsigned int vertex;
-			double score;
-			if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
-                reducedScores[vertex] += score;
+        auto timeFileReadingStart = currTimeNano();
+        FILE *input = fopen(name.c_str(), "r");
+        if(input == NULL) {
+            printf("\tError while opening file \"%s\", aborting\n", name.c_str());
+            abort();
+        }
+        char* line = NULL;
+        size_t len = 0;
+        unsigned int vertex;
+        double score;
+        while(getline(&line, &len, input) != -1) {
+            if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
+                reducedScores[vertex] = score;
             } else {
-                std::cout << "\tInvalid line: " << line << "\n";
-				ifs.close();
+                printf("\tInvalid line: \"%s\" in file \"%s\", aborting\n", line, name.c_str());
                 abort();
             }
-		}
-		ifs.close();
+        }
+        if(line) {
+            free(line);
+        }
+        fclose(input);
+		printf("\t%s (%.2lf s)\n", name.c_str(), (currTimeNano() - timeFileReadingStart)*1e-9);
 	}
-	std::cout << "Reading done\n";
+	printf("Done (%.2lf s)\n", (currTimeNano() - timeReadingStart)*1e-9);
 
-	std::cout << "Writing to \"reduced.txt\"\n";
-	std::ofstream ofs;
-	ofs.open("reduced.txt");
+    auto timeWritingStart = currTimeNano();
+	printf("Writing to \"%s\"\n", my_args.outputFile.c_str());
+	FILE* output = fopen(my_args.outputFile.c_str(), "w");
+    if(output == NULL) {
+        printf("\tError while opening file \"%s\", aborting\n", my_args.outputFile.c_str());
+        abort();
+    }
 	for(auto p: reducedScores) {
-		ofs << p.first << " " << p.second << "\n";
+		fprintf(output, "%u %lf\n", p.first, p.second);
 	}
-	ofs.close();
-	std::cout << "Finished\n";
+	fclose(output);
+    printf("Done (%.2lf s)\n", (currTimeNano() - timeWritingStart)*1e-9);
 
+	printf("\nFinished (%.2lf s)\n", (currTimeNano() - t0)*1e-9);
 	return 0;
 }
 
@@ -107,20 +121,8 @@ static int parse_opt(int key, char *arg, struct argp_state *state) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+unsigned long long currTimeNano() {
+    struct timespec t;
+    clock_gettime (CLOCK_MONOTONIC, &t);
+    return t.tv_sec*1000000000 + t.tv_nsec;
+}
