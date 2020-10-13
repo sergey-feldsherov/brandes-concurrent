@@ -79,9 +79,9 @@ int main(int argc, char** argv) {
 		sumSquareErr += err * err;
     }
 
-	std::cout << "L1: \t" << sumErr << " (sum of absolute values)\n";
-	std::cout << "L2: \t" << sqrt(sumSquareErr) << " (Euclidean)\n";
-	std::cout << "L" << "\u221E" << ": \t" << maxErr << " (max absolute value)\n";
+	std::cout << "L1:   \t" << sumErr << " (sum of absolute errors)\n";
+	std::cout << "L2:   \t" << sqrt(sumSquareErr) << " (Euclidean norm of error vector)\n";
+	std::cout << "Linf: \t" << maxErr << " (max absolute error)\n";
 
 }
 
