@@ -14,7 +14,7 @@ Additionally, a data reduction step is introduced after threads are joined.
 ## TODO
 
 * Switch to inhouse argument-parsing solution
+* Refactor ProgressBar
 * Solve workarounds used for thread pausing
 * Switch to thread pool with task queue for better concurrency
-* Refactor ProgressBar
-* 
+* Update **Usage** section and description
