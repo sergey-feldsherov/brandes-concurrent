@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
 static int parse_opt(int key, char *arg, struct argp_state *state) {
     if(key == -1) {
         my_args.file1 = arg;
-    } else if(key == -1) {
+    } else if(key == -2) {
         my_args.file2 = arg;
     }
 
