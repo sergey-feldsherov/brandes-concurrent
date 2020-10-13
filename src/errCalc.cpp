@@ -1,5 +1,4 @@
-#include <iostream>
-#include <fstream>
+#include <cstdio>
 #include <unordered_map>
 #include <cassert>
 #include <string>
@@ -25,45 +24,51 @@ int main(int argc, char** argv) {
     struct argp argp = {options, parse_opt, 0, 0};
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
-	std::ifstream ifs;
-
-	std::cout << "Reading file \"" << my_args.file1 << "\"\n";
+	printf("Reading file \"%s\".\n", my_args.file1.c_str());
 	std::unordered_map<unsigned int, double> data1;
-	ifs.open(my_args.file1);
-	while(ifs.peek() != EOF) {
-		char line[256];
-		ifs.getline(line, 256);
-		unsigned int vertex;
-		double score;
-		if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
+    FILE* input = fopen(my_args.file1.c_str(), "r");
+    if(input == NULL) {
+        printf("Error while opening file, aborting.\n");
+        abort();
+    }
+    char* line = NULL;
+    size_t len = 0;
+    unsigned int vertex;
+    double score;
+    while(getline(&line, &len, input) != -1) {
+        if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
             data1[vertex] = score;
         } else {
-            std::cout << "\tInvalid line: " << line << "\n";
-			ifs.close();
+            printf("Invalid line: \"%s\", aborting.\n", line);
             abort();
         }
-	}
-	ifs.close();
-	std::cout << "Vertices: " << data1.size() << "\n";
+    }
+    if(line) {
+        free(line);
+    }
+    fclose(input);
+	printf("Vertices: %lu\n", data1.size());
 
-	std::cout << "Reading file \"" << my_args.file2 << "\"\n";
+	printf("Reading file \"%s\".\n", my_args.file2.c_str());
 	std::unordered_map<unsigned int, double> data2;
-	ifs.open(my_args.file2);
-	while(ifs.peek() != EOF) {
-		char line[256];
-		ifs.getline(line, 256);
-		unsigned int vertex;
-		double score;
-		if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
+    input = fopen(my_args.file2.c_str(), "r");
+    if(input == NULL) {
+        printf("Error while opening file, aborting.\n");
+        abort();
+    }
+    while(getline(&line, &len, input) != -1) {
+        if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
             data2[vertex] = score;
         } else {
-            std::cout << "\tInvalid line: " << line << "\n";
-			ifs.close();
+            printf("Invalid line: \"%s\", aborting.\n", line);
             abort();
         }
-	}
-	ifs.close();
-	std::cout << "Vertices: " << data2.size() << "\n";
+    }
+    if(line) {
+        free(line);
+    }
+    fclose(input);
+	printf("Vertices: %lu\n", data2.size());
 
     assert(data1.size() == data2.size());
 
@@ -79,9 +84,9 @@ int main(int argc, char** argv) {
 		sumSquareErr += err * err;
     }
 
-	std::cout << "L1:   \t" << sumErr << " (sum of absolute errors)\n";
-	std::cout << "L2:   \t" << sqrt(sumSquareErr) << " (Euclidean norm of error vector)\n";
-	std::cout << "Linf: \t" << maxErr << " (max absolute error)\n";
+	printf("L1:   \t%lf (sum of absolute errors)\n", sumErr);
+	printf("L2:   \t%lf (Euclidean norm of error vector)\n", sqrt(sumSquareErr));
+	printf("Linf: \t%lf (max absolute error)\n", maxErr);
 
 }
 
