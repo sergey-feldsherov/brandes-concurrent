@@ -159,9 +159,9 @@ void FastGraph::serialBrandes() {
     for(unsigned int s = args->startID; s < args->finishID; s++) {
 
         std::stack< int > S;
-        assert(S.empty());
+        //assert(S.empty());
 
-        std::vector< std::vector< int > > P(vertices.size());
+        std::vector< std::vector< unsigned int > > P(vertices.size(), std::vector< unsigned int > ());
 
         std::vector< unsigned int > sigma(vertices.size(), 0);
         sigma[s] = 1;
@@ -170,7 +170,7 @@ void FastGraph::serialBrandes() {
         d[s] = 0;
 
         std::deque< int > Q;
-        assert(Q.empty());
+        //assert(Q.empty());
         Q.push_back(s);
 
         while(not Q.empty()) {
@@ -185,7 +185,7 @@ void FastGraph::serialBrandes() {
                     Q.push_back(neighbour);
                     d[neighbour] = d[v] + 1;
                 }
-                if(d[neighbour] == d[v] + 1) {
+                if(d[neighbour] == (d[v] + 1)) {
                     sigma[neighbour] += sigma[v];
                     P[neighbour].push_back(v);
                 }
@@ -197,7 +197,7 @@ void FastGraph::serialBrandes() {
             vertex w = S.top();
             S.pop();
             for(auto v: P[w]) {
-                delta[v] += (sigma[v] / sigma[w]) * (1. + delta[w]);
+                delta[v] += ((double) sigma[v] / (double) sigma[w]) * (1. + delta[w]);
             }
             if( w != s ) {
                 scores[w] += delta[w];
@@ -322,9 +322,9 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
         }
 
         std::stack< int > S;
-        assert(S.empty());
+        //assert(S.empty());
 
-        std::vector< std::vector< int > > P(vertices.size(), std::vector< int >());
+        std::vector< std::vector< unsigned int > > P(vertices.size(), std::vector< unsigned int >());
 
         std::vector< unsigned int > sigma(vertices.size(), 0);
         sigma[s] = 1;
@@ -333,7 +333,7 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
         d[s] = 0;
 
         std::deque< int > Q;
-        assert(Q.empty());
+        //assert(Q.empty());
         Q.push_back(s);
 
         while(not Q.empty()) {
@@ -348,7 +348,7 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
                     Q.push_back(neighbour);
                     d[neighbour] = d[v] + 1;
                 }
-                if(d[neighbour] == d[v] + 1) {
+                if(d[neighbour] == (d[v] + 1)) {
                     sigma[neighbour] += sigma[v];
                     P[neighbour].push_back(v);
                 }
@@ -360,7 +360,7 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
             vertex w = S.top();
             S.pop();
             for(auto v: P[w]) {
-                delta[v] += (sigma[v] / sigma[w]) * (1. + delta[w]);
+                delta[v] += ((double) sigma[v] / (double) sigma[w]) * (1. + delta[w]);
             }
             if( w != s ) {
                 threadScores[id][w] += delta[w];
@@ -374,6 +374,8 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
         }
 
     }
+
+    runningThreads.fetch_sub(1);
 }
 
 

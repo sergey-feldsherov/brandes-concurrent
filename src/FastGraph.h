@@ -12,7 +12,7 @@ typedef unsigned int vertex;
 class FastGraph {
  private:
     std::vector< vertex > vertices;
-    std::unordered_map< vertex, int > renumerationTable;
+    std::unordered_map< vertex, int > renumerationTable;//Converts from new indices to old
     std::vector< int > indices;
     std::vector< vertex > csr;
     std::vector< double > scores;
