@@ -272,7 +272,7 @@ void FastGraph::threadedBrandes() {
             }
 
             //save
-            saveFileName = args->outputDir + "/" + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".txt";
+            saveFileName = args->saveFilePrefix + std::to_string(args->startID) + "-" + std::to_string(counter.load()) + ".ontheway";
             bar.setMessage(std::string("Saving to " + saveFileName), true);
             saveResult(saveFileName, true);
 

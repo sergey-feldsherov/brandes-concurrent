@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
         { "debug",      'd',      0, 0,                                                         "Debugging information display" },
         { "undirected", 'u',      0, 0,                                                             "Treat graph as undirected" },
         { "input",      'i', "FILE", 0,                                                                            "Input file" },
-        { "output",     'o', "FILE", 0,                                                                      "Output directory" },
+        { "output",     'o',  "DIR", 0,                                                                      "Output directory" },
         { "threads",    't',  "NUM", 0,           "Number of threads: <=0 - serial, >= 1 -> concurrent with threads allocation" },
         { "start",      's',   "ID", 0,                      "Starting vertex id for calculating contributions, first included" },
         { "finish",     'f',   "ID", 0,                  "Finishing vertex id for calculating contributions, last not included" },
@@ -31,6 +31,15 @@ int main(int argc, char **argv) {
 
     //parse args and put stuff into globalArgs
     argp_parse(&argp, argc, argv, 0, 0, 0);
+    if(globalArgs.outputDir.back() != '/') {
+        globalArgs.outputDir.append("/");
+    }
+    globalArgs.saveFilePrefix = globalArgs.inputFile;
+    size_t last_bslash_idx = globalArgs.saveFilePrefix.find_last_of("/");
+    if(std::string::npos != last_bslash_idx) {
+        globalArgs.saveFilePrefix.erase(0, last_bslash_idx + 1);
+    }
+    globalArgs.saveFilePrefix = globalArgs.outputDir + globalArgs.saveFilePrefix;
     if(globalArgs.debug)
         printArgs(&globalArgs);
 
@@ -42,8 +51,8 @@ int main(int argc, char **argv) {
         fg.threadedBrandes();
     }
 
-    std::string name = "output/" + std::to_string(globalArgs.startID) + "-" + std::to_string(globalArgs.finishID) + ".final" + ".txt";
-    fg.saveResult(name);
+    std::string suffix = "." + std::to_string(globalArgs.startID) + "-" + std::to_string(globalArgs.finishID) + ".final";
+    fg.saveResult(globalArgs.saveFilePrefix + suffix);
 
     /*
     Graph g(&globalArgs);

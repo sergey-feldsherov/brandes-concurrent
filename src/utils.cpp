@@ -6,8 +6,9 @@
 void initArgs(struct globalArgs_t *args) {
     args->debug            = false;
     args->directed         = true;
-    args->inputFile        = "";
-    args->outputDir        = "./output";
+    args->inputFile        = "./input/example.txt";
+    args->outputDir        = "./output/";
+    args->saveFilePrefix   = "./output/example";
     args->thNum            = 0;
     args->startID          = 0;
     args->finishID         = 0;
@@ -34,6 +35,7 @@ void printArgs(struct globalArgs_t *args) {
 
     printf("\tinputFile = %s\n", (args->inputFile).c_str());
     printf("\toutputDir = %s\n", (args->outputDir).c_str());
+    printf("\tsaveFilePrefix = %s\n", (args->saveFilePrefix).c_str());
 
     printf("\tthNum = %d\n", args->thNum);
 

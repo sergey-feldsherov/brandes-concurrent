@@ -8,6 +8,7 @@ struct globalArgs_t {
     bool directed;
     std::string inputFile;
     std::string outputDir;
+    std::string saveFilePrefix;
     int thNum;
     unsigned int startID;
     unsigned int finishID;
