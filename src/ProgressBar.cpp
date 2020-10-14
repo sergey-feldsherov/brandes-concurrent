@@ -51,7 +51,7 @@ void ProgressBar::start() {
 
 void ProgressBar::forceUpdate() {
     timeToUpdate.store(true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(20));
 }
 
 void ProgressBar::tick() {
