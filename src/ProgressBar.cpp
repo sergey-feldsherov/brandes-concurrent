@@ -110,8 +110,8 @@ void ProgressBar::loop() {
 
 void ProgressBar::update() {
     /* It looks like this:
-    Some message
-    Some other message
+    Some previous message
+    Some latest message
     [Status: running]
     27%|==>       | 493/1821 [01m38s<06m11s, 5.03it/s]
     */

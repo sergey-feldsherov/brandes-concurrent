@@ -29,7 +29,7 @@ private:
     std::string message = "";
     std::string statusMessage = "running";
     std::deque<double> etaFilter;
-    size_t filterSize = 10;
+    size_t filterSize = 20;
     double updateIntervalMilliseconds = 50.;
 
     char begin = '|';
