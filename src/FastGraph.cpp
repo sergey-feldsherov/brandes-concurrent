@@ -312,6 +312,80 @@ void FastGraph::threadedBrandes() {
 }
 
 
+void FastGraph::threadedBrandes_noAutosave() {
+    assert(args->startID < args->finishID);
+    printf("\nRunning threaded Brandes for vertices in interval [%u, %u), no autosave.\n", args->startID, args->finishID);
+    unsigned long long t0 = currTimeNano();
+
+    scores.resize(vertices.size(), 0.);
+    threadScores.resize(args->thNum, std::vector< double >(vertices.size(), 0.));
+    std::vector<unsigned int> progressVector(args->thNum, 0);
+    std::vector<std::thread> workers;
+
+    int threadCount = args->thNum;
+    assert(((double) vertices.size() / (double) threadCount) >= 1. );
+
+    unsigned int fullThreads, rest, verticesPerThread;
+    rest = vertices.size() % threadCount;
+    verticesPerThread = vertices.size() / threadCount;
+    if(rest != 0) {
+        fullThreads = rest;
+    } else {
+        fullThreads = threadCount;
+    }
+    if(args->debug) {
+        printf("full threads: %u\nvertices per thread: %u\n", fullThreads, verticesPerThread);
+    }
+
+    unsigned int a = 0, b = 0;
+    printf("Starting threads\n");
+    for(unsigned int i = 0; i < (unsigned int) args->thNum; i++) {
+        a = b;
+        if(i < fullThreads && rest != 0) {
+            b += verticesPerThread + 1;
+        } else {
+            b += verticesPerThread;
+        }
+
+        if(args->debug) {
+            printf("\tStarting thread %d, [%u, %u) (%u)\n", i, a, b, b-a);
+        }
+        workers.push_back(std::thread([this, i, a, b, &progressVector] (){this->threadFunction_noAutosave(i, a, b, progressVector);}));
+    }
+    printf("Threads started\n");
+
+    ProgressBar bar;
+    bar.setMax(args->finishID - args->startID);
+    bar.start();
+    unsigned int counter = 0;
+    while(counter < (args->finishID - args->startID)) {
+        counter = 0;
+        for(auto p: progressVector) {
+            counter += p;
+        }
+        bar.setCurrent(counter);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    bar.finish();
+
+    for(auto& t: workers) {
+        t.join();
+    }
+    printf("Threads joined\n");
+
+    printf("Reducing scores\n");
+    for(unsigned int i = 0; i < vertices.size(); i++) {
+        for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
+            scores[i] += threadScores[j][i];
+        }
+    }
+    printf("Scores array reduced\n");
+
+    unsigned long long t = currTimeNano() - t0;
+    printf("Total work time: %.4lf seconds\n", t * 1e-9);
+}
+
+
 void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic< unsigned int >& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads) {
     runningThreads.fetch_add(1);
 
@@ -376,6 +450,59 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
     }
 
     runningThreads.fetch_sub(1);
+}
+
+
+void FastGraph::threadFunction_noAutosave(unsigned int id, unsigned int m_startID, unsigned int m_finishID, std::vector<unsigned int>& progressVector) {
+    for(unsigned int s = m_startID; s < m_finishID; s++) {
+        std::stack< int > S;
+        //assert(S.empty());
+
+        std::vector< std::vector< unsigned int > > P(vertices.size(), std::vector< unsigned int >());
+
+        std::vector< unsigned int > sigma(vertices.size(), 0);
+        sigma[s] = 1;
+
+        std::vector< int > d(vertices.size(), -1);
+        d[s] = 0;
+
+        std::deque< int > Q;
+        //assert(Q.empty());
+        Q.push_back(s);
+
+        while(not Q.empty()) {
+            int v = Q.front();
+            Q.pop_front();
+            S.push(v);
+            int st = indices[v];
+            int fn = indices[v + 1];
+            for(int w = st; w < fn; w++) {
+                int neighbour = csr[w];
+                if(d[neighbour] < 0) {
+                    Q.push_back(neighbour);
+                    d[neighbour] = d[v] + 1;
+                }
+                if(d[neighbour] == (d[v] + 1)) {
+                    sigma[neighbour] += sigma[v];
+                    P[neighbour].push_back(v);
+                }
+            }
+        }
+
+        std::vector< double > delta(vertices.size(), 0.);
+        while(not S.empty()) {
+            vertex w = S.top();
+            S.pop();
+            for(auto v: P[w]) {
+                delta[v] += ((double) sigma[v] / (double) sigma[w]) * (1. + delta[w]);
+            }
+            if( w != s ) {
+                threadScores[id][w] += delta[w];
+            }
+        }
+        progressVector[id] += 1;
+
+    }
 }
 
 
