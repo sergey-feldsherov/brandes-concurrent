@@ -143,6 +143,8 @@ void FastGraph::loadGraph() {
         printf("]\n");
     }
     */
+
+    fflush(stdout);
 }
 
 void FastGraph::serialBrandes() {
@@ -236,6 +238,7 @@ void FastGraph::threadedBrandes() {
         workers.push_back(std::thread([this, i, fID, &counter, &shouldBeRunning, &runningThreads] (){this->threadFunction(i, fID, counter, shouldBeRunning, runningThreads);}));
     }
     printf("Threads started\n");
+    fflush(stdout);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> previousTime = std::chrono::high_resolution_clock::now();
     ProgressBar bar;
@@ -309,6 +312,7 @@ void FastGraph::threadedBrandes() {
 
     unsigned long long t = currTimeNano() - t0;
     printf("Total work time: %.4lf seconds\n", t * 1e-9);
+    fflush(stdout);
 }
 
 
@@ -353,6 +357,7 @@ void FastGraph::threadedBrandes_noAutosave() {
         workers.push_back(std::thread([this, i, a, b, &progressVector] (){this->threadFunction_noAutosave(i, a, b, progressVector);}));
     }
     printf("Threads started\n");
+    fflush(stdout);
 
     ProgressBar bar;
     bar.setMax(args->finishID - args->startID);
@@ -383,6 +388,7 @@ void FastGraph::threadedBrandes_noAutosave() {
 
     unsigned long long t = currTimeNano() - t0;
     printf("Total work time: %.4lf seconds\n", t * 1e-9);
+    fflush(stdout);
 }
 
 
@@ -533,4 +539,5 @@ void FastGraph::saveResult(std::string str, bool noPrinting) {
     if(not noPrinting) {
         printf("Done (%.5lf seconds)\n", t * 1e-9);
     }
+    fflush(stdout);
 }
