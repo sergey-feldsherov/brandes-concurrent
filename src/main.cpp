@@ -48,8 +48,8 @@ int main(int argc, char **argv) {
     if(globalArgs.thNum <= 0) {
         fg.serialBrandes();
     } else {
-        fg.threadedBrandes_noAutosave();
-        //fg.threadedBrandes();
+        //fg.threadedBrandes_noAutosave();
+        fg.threadedBrandes();
     }
 
     std::string suffix = "." + std::to_string(globalArgs.startID) + "-" + std::to_string(globalArgs.finishID) + ".final";

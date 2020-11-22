@@ -42,7 +42,7 @@ void ProgressBar::start() {
     timeToStop.store(false);
     timeToUpdate.store(true);
     finished = false;
-    fprintf(stderr, "\n");
+    fprintf(stdout, "\n");
 
     printingThread = std::thread([this] (){this->loop();});
 
@@ -101,7 +101,7 @@ void ProgressBar::loop() {
         if(timeToStop.load() || finished) {
             statusMessage = "finished";
             update();
-            fprintf(stderr, "\n");
+            fprintf(stdout, "\n");
             break;
         }
     }
@@ -182,7 +182,8 @@ void ProgressBar::update() {
     progressLine += str;
 
     progressLine += "\033[K";//This control sequence erases part of current line from cursor position until the end of the line, \e is the GNU shortcut for \033.
-    fprintf(stderr, "%s", progressLine.c_str());//Printing to stderr to evade cursor blinking and potential mess if IO is redirected to file.
+    fprintf(stdout, "%s", progressLine.c_str());//Printing to stderr to evade cursor blinking and potential mess if IO is redirected to file.
+    fflush(stdout);
 
     if(current >= max) {
         finished = true;

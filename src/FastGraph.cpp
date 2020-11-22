@@ -218,6 +218,7 @@ void FastGraph::serialBrandes() {
 void FastGraph::threadedBrandes() {
     assert(args->startID < args->finishID);
     printf("\nRunning threaded Brandes for vertices in interval [%u, %u).\n", args->startID, args->finishID);
+    fflush(stdout);
     unsigned long long t0 = currTimeNano();
 
     std::atomic<unsigned int> counter(args->startID);
@@ -231,9 +232,11 @@ void FastGraph::threadedBrandes() {
     std::string saveFileName = "";
 
     printf("Starting threads\n");
+    fflush(stdout);
     for(unsigned int i = 0; i < (unsigned int) args->thNum; i++) {
         if(args->debug) {
             printf("\tStarting thread %d\n", i);
+            fflush(stdout);
         }
         workers.push_back(std::thread([this, i, fID, &counter, &shouldBeRunning, &runningThreads] (){this->threadFunction(i, fID, counter, shouldBeRunning, runningThreads);}));
     }
@@ -289,10 +292,13 @@ void FastGraph::threadedBrandes() {
     }
     bar.finish();
 
+    printf("Joining threads\n");
+    fflush(stdout);
     for(auto& t: workers) {
         t.join();
     }
     printf("Threads joined\n");
+    fflush(stdout);
 
     if(saveFileName != "") {
         if(remove(saveFileName.c_str()) == 0) {
@@ -300,15 +306,18 @@ void FastGraph::threadedBrandes() {
         } else {
             printf("Error while removing last save file at %s\n", saveFileName.c_str());
         }
+        fflush(stdout);
     }
 
     printf("Reducing scores\n");
+    fflush(stdout);
     for(unsigned int i = 0; i < vertices.size(); i++) {
         for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
             scores[i] += threadScores[j][i];
         }
     }
     printf("Scores array reduced\n");
+    fflush(stdout);
 
     unsigned long long t = currTimeNano() - t0;
     printf("Total work time: %.4lf seconds\n", t * 1e-9);
@@ -319,6 +328,7 @@ void FastGraph::threadedBrandes() {
 void FastGraph::threadedBrandes_noAutosave() {
     assert(args->startID < args->finishID);
     printf("\nRunning threaded Brandes for vertices in interval [%u, %u), no autosave.\n", args->startID, args->finishID);
+    fflush(stdout);
     unsigned long long t0 = currTimeNano();
 
     scores.resize(vertices.size(), 0.);
@@ -327,11 +337,11 @@ void FastGraph::threadedBrandes_noAutosave() {
     std::vector<std::thread> workers;
 
     int threadCount = args->thNum;
-    assert(((double) vertices.size() / (double) threadCount) >= 1. );
+    assert(((double) (args->finishID - args->startID) / (double) threadCount) >= 1. );
 
     unsigned int fullThreads, rest, verticesPerThread;
-    rest = vertices.size() % threadCount;
-    verticesPerThread = vertices.size() / threadCount;
+    rest = (args->finishID - args->startID) % threadCount;
+    verticesPerThread = (args->finishID - args->startID) / threadCount;
     if(rest != 0) {
         fullThreads = rest;
     } else {
@@ -339,10 +349,12 @@ void FastGraph::threadedBrandes_noAutosave() {
     }
     if(args->debug) {
         printf("full threads: %u\nvertices per thread: %u\n", fullThreads, verticesPerThread);
+        fflush(stdout);
     }
 
-    unsigned int a = 0, b = 0;
+    unsigned int a = 0, b = args->startID;
     printf("Starting threads\n");
+    fflush(stdout);
     for(unsigned int i = 0; i < (unsigned int) args->thNum; i++) {
         a = b;
         if(i < fullThreads && rest != 0) {
@@ -353,6 +365,7 @@ void FastGraph::threadedBrandes_noAutosave() {
 
         if(args->debug) {
             printf("\tStarting thread %d, [%u, %u) (%u)\n", i, a, b, b-a);
+            fflush(stdout);
         }
         workers.push_back(std::thread([this, i, a, b, &progressVector] (){this->threadFunction_noAutosave(i, a, b, progressVector);}));
     }
@@ -373,18 +386,23 @@ void FastGraph::threadedBrandes_noAutosave() {
     }
     bar.finish();
 
+    printf("Joining threads\n");
+    fflush(stdout);
     for(auto& t: workers) {
         t.join();
     }
     printf("Threads joined\n");
+    fflush(stdout);
 
     printf("Reducing scores\n");
+    fflush(stdout);
     for(unsigned int i = 0; i < vertices.size(); i++) {
         for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
             scores[i] += threadScores[j][i];
         }
     }
     printf("Scores array reduced\n");
+    fflush(stdout);
 
     unsigned long long t = currTimeNano() - t0;
     printf("Total work time: %.4lf seconds\n", t * 1e-9);
@@ -519,12 +537,14 @@ void FastGraph::saveResult(std::string str, bool noPrinting) {
 
     if(not noPrinting) {
         printf("\nSaving data to %s\n", str.c_str());
+        fflush(stdout);
     }
 
     FILE *output = fopen(str.c_str(), "w");
     if(output == NULL) {
         if(not noPrinting) {
             printf("Unable to open output file: %s.\n", str.c_str());
+            fflush(stdout);
         }
         return;
     }
@@ -538,6 +558,6 @@ void FastGraph::saveResult(std::string str, bool noPrinting) {
     t = currTimeNano() - t;
     if(not noPrinting) {
         printf("Done (%.5lf seconds)\n", t * 1e-9);
+        fflush(stdout);
     }
-    fflush(stdout);
 }

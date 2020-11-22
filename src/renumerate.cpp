@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     }
     fclose(input);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeReadingStart)*1e-9);
-    printf("Vertices: %lu, edges: %u\n", allVerticesSet.size(), edgeCount);
+    printf("Vertices: %lu(%llu), edges: %u\n", allVerticesSet.size(), allVerticesSet.max_size(), edgeCount);
 
     auto timeConstructionStart = currTimeNano();
     printf("\nConstructing renumeration structures\n");
