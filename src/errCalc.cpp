@@ -108,16 +108,22 @@ int main(int argc, char** argv) {
     }
     //assert(data1.size() == data2.size());
 
-	double sumErr = 0.;
+    double sumErr = 0.;
     double sumSquareErr = 0.;
     double maxErr = 0.;
     for(auto p: data1) {
         auto v1 = p.second;
         auto v2 = data2[p.first];
-		auto err = fabs(v1 - v2);
+        auto err = fabs(v1 - v2);
         maxErr = fmax(err, maxErr);
 		sumErr += err;
 		sumSquareErr += err * err;
+    }
+    int printCounter = 0;
+    int maxPrint = 30;
+    while(printCounter < maxPrint) {
+        printf("ID: %d, score1: %.10lf, score2: %.10lf\n", printCounter, data1[printCounter], data2[printCounter]);
+        printCounter++;
     }
 
     printf("\n");

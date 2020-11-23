@@ -550,8 +550,9 @@ void FastGraph::saveResult(std::string str, bool noPrinting) {
     }
 
     unsigned long long t = currTimeNano();
+    double N = static_cast<double>(vertices.size());
     for(unsigned int i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%u %.10lf\n", vertices[i], scores[i]);
+        fprintf(output, "%u %.10lf\n", vertices[i], scores[i] / ((N-1)*(N-2)));
     }
     fclose(output);
 
