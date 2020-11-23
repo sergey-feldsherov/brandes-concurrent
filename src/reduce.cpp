@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
         abort();
     }
 	for(auto p: reducedScores) {
-		fprintf(output, "%u %lf\n", p.first, p.second);
+		fprintf(output, "%u %.10lf\n", p.first, p.second);
 	}
 	fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeWritingStart)*1e-9);
