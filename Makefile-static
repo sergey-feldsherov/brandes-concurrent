@@ -1,11 +1,11 @@
 CFLAGS= -g -O3 -W -Wall -Wunused -Wcast-align -pedantic -pedantic-errors -fstack-protector-all -Wfloat-equal -Wpointer-arith
-CC = g++ -std=c++17 $(CFLAGS)
+CC = g++ -std=c++11 $(CFLAGS)
 
 
-all: brandes renumerate reduce backnumerate errCalc
+all: brandes-static renumerate reduce backnumerate errCalc
 
-brandes: build/main.o build/FastGraph.o build/utils.o build/ProgressBar.o
-	$(CC) -o brandes build/main.o build/FastGraph.o build/utils.o build/ProgressBar.o -lpthread
+brandes-static: build/main.o build/FastGraph.o build/utils.o build/ProgressBar.o
+	$(CC) -o brandes-static build/main.o build/FastGraph.o build/utils.o build/ProgressBar.o -pthread -lrt -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 
 build/main.o: src/main.cpp
 	$(CC) -c src/main.cpp -o build/main.o
