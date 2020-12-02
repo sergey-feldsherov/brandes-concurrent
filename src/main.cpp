@@ -1,7 +1,6 @@
 #include <argp.h>
 #include <stdlib.h> // atoi, atof
 
-#include "Graph.h"
 #include "FastGraph.h"
 #include "utils.h"
 
@@ -54,17 +53,6 @@ int main(int argc, char **argv) {
 
     std::string suffix = "." + std::to_string(globalArgs.startID) + "-" + std::to_string(globalArgs.finishID) + ".final";
     fg.saveResult(globalArgs.saveFilePrefix + suffix);
-
-    /*
-    Graph g(&globalArgs);
-    g.loadGraph();
-    if(globalArgs.thNum <= 0) {
-        g.computeBrandes();
-    } else {
-        g.concurrentBrandes();
-    }
-    g.saveBrandesData();
-    */
 
     return 0;
 }

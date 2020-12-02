@@ -61,9 +61,9 @@ int main(int argc, char** argv) {
 	}
 
     auto timeReadingStart = currTimeNano();
-	printf("Reading files:\n");
-	std::unordered_map<unsigned int, double> reducedScores;
-	for(auto name: filesVec) {
+    printf("Reading files:\n");
+    std::unordered_map<unsigned int, double> reducedScores;
+    for(auto name: filesVec) {
         auto timeFileReadingStart = currTimeNano();
         FILE *input = fopen(name.c_str(), "r");
         if(input == NULL) {
@@ -88,25 +88,25 @@ int main(int argc, char** argv) {
             free(line);
         }
         fclose(input);
-		printf("\t%s - %u lines (%.2lf s)\n", name.c_str(), numLines, (currTimeNano() - timeFileReadingStart)*1e-9);
-	}
-	printf("Done (%.2lf s)\n", (currTimeNano() - timeReadingStart)*1e-9);
+        printf("\t%s - %u lines (%.2lf s)\n", name.c_str(), numLines, (currTimeNano() - timeFileReadingStart)*1e-9);
+    }
+    printf("Done (%.2lf s)\n", (currTimeNano() - timeReadingStart)*1e-9);
 
     auto timeWritingStart = currTimeNano();
-	printf("Writing to \"%s\"\n", my_args.outputFile.c_str());
-	FILE* output = fopen(my_args.outputFile.c_str(), "w");
+    printf("Writing to \"%s\"\n", my_args.outputFile.c_str());
+    FILE* output = fopen(my_args.outputFile.c_str(), "w");
     if(output == NULL) {
         printf("\tError while opening file \"%s\", aborting\n", my_args.outputFile.c_str());
         abort();
     }
-	for(auto p: reducedScores) {
-		fprintf(output, "%u %.10lf\n", p.first, p.second);
-	}
-	fclose(output);
+    for(auto p: reducedScores) {
+        fprintf(output, "%u %.15e\n", p.first, p.second);
+    }
+    fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeWritingStart)*1e-9);
 
-	printf("\nFinished (%.2lf s)\n", (currTimeNano() - t0)*1e-9);
-	return 0;
+    printf("\nFinished (%.2lf s)\n", (currTimeNano() - t0)*1e-9);
+    return 0;
 }
 
 

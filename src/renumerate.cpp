@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 #include <argp.h>
+#include <cstdint>
+#include <cinttypes>
+#include <limits>
 
 unsigned long long currTimeNano();
 static int parse_opt(int key, char *arg, struct argp_state *state);
@@ -33,17 +36,17 @@ int main(int argc, char **argv) {
         printf("\tUnable to open input file \"%s\", aborting\n", my_args.inputFile.c_str());
         abort();
     }
-    std::unordered_set< unsigned int > allVerticesSet;
-    std::unordered_map< unsigned int, std::unordered_set< unsigned int > > allEdgesMap;
-    unsigned int edgeCount = 0;
+    std::unordered_set< uint64_t > allVerticesSet;
+    std::unordered_map< uint64_t, std::unordered_set< uint64_t > > allEdgesMap;
+    uint64_t edgeCount = 0;
     char* line = NULL;
     size_t len = 0;
-    unsigned int v0, v1;
+    uint64_t v0, v1;
     while(getline(&line, &len, input) != -1) {
         if(line[0] == '#') {
             printf("\tEncountered a commentary line\n");
         } else {
-            if(sscanf(line, "%u %u", &v0, &v1) == 2) {
+            if(sscanf(line, "%" SCNu64 " %" SCNu64, &v0, &v1) == 2) {
                 allEdgesMap[v0].insert(v1);
 
                 allVerticesSet.insert(v0);
@@ -60,13 +63,13 @@ int main(int argc, char **argv) {
     }
     fclose(input);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeReadingStart)*1e-9);
-    printf("Vertices: %lu(%llu), edges: %u\n", allVerticesSet.size(), allVerticesSet.max_size(), edgeCount);
+    printf("Vertices: %lu, edges: %" PRIu64 "\n", allVerticesSet.size(), edgeCount);
 
     auto timeConstructionStart = currTimeNano();
     printf("\nConstructing renumeration structures\n");
-    std::vector< unsigned int > vertices = std::vector< unsigned int >(allVerticesSet.begin(), allVerticesSet.end());
-	std::unordered_map< unsigned int, unsigned int > renumerationTable;
-    for(unsigned int i = 0; i < vertices.size(); i++) {
+    std::vector<uint64_t> vertices = std::vector<uint64_t>(allVerticesSet.begin(), allVerticesSet.end());
+    std::unordered_map<uint64_t, uint64_t> renumerationTable;
+    for(uint64_t i = 0; i < vertices.size(); i++) {
         renumerationTable[vertices[i]] = i;
     }
     printf("Done (%.4lf seconds)\n", (currTimeNano() - timeConstructionStart)*1e-9);
@@ -79,9 +82,9 @@ int main(int argc, char **argv) {
         printf("Unable to open output file \"%s\", aborting\n", renumeratedPath.c_str());
         abort();
     }
-    for(unsigned int i = 0; i < vertices.size(); i++) {
+    for(uint64_t i = 0; i < vertices.size(); i++) {
         for(auto vrtx: allEdgesMap[vertices[i]]) {
-            fprintf(output, "%u %u\n", i, renumerationTable[vrtx]);
+            fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i, renumerationTable[vrtx]);
         }
     }
     fclose(output);
@@ -96,8 +99,8 @@ int main(int argc, char **argv) {
         printf("Unable to open output file \"%s\", aborting\n", old2newPath.c_str());
         abort();
     }
-    for(unsigned int i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%u %u\n", vertices[i], i);
+    for(uint64_t i = 0; i < vertices.size(); i++) {
+        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", vertices[i], i);
     }
     fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeOld2newWriteStart)*1e-9);
@@ -110,11 +113,13 @@ int main(int argc, char **argv) {
         printf("Unable to open output file \"%s\",\n", new2oldPath.c_str());
         abort();
     }
-    for(unsigned int i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%u %u\n", i, vertices[i]);
+    for(uint64_t i = 0; i < vertices.size(); i++) {
+        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i, vertices[i]);
     }
     fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeNew2oldWriteStart)*1e-9);
+
+    printf("\nMaximal value for <unsigned int> for this system: %u (+1: %u)\n", std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max() + 1);
 
     printf("\nFinished (%.2lf s)\n", (currTimeNano() - t0)*1e-9);
     return 0;

@@ -2,6 +2,8 @@
 #include <string>
 #include <unordered_map>
 #include <argp.h>
+#include <cstdint>
+#include <cinttypes>
 
 unsigned long long currTimeNano();
 static int parse_opt(int key, char *arg, struct argp_state *state);
@@ -27,8 +29,8 @@ int main(int argc, char **argv) {
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     auto timeDataReadingStart = currTimeNano();
-	printf("Reading scores from \"%s\"\n", my_args.dataFile.c_str());
-	std::unordered_map<unsigned int, double> renumeratedScores;
+    printf("Reading scores from \"%s\"\n", my_args.dataFile.c_str());
+    std::unordered_map<uint64_t, double> renumeratedScores;
     FILE *input = fopen(my_args.dataFile.c_str(), "r");
     if(input == NULL) {
         printf("\tError while opening file \"%s\", aborting\n", my_args.dataFile.c_str());
@@ -36,11 +38,11 @@ int main(int argc, char **argv) {
     }
     char* line = NULL;
     size_t len = 0;
-    unsigned int vertex;
+    uint64_t vertex;
     double score;
-    unsigned int numLines = 0;
+    uint64_t numLines = 0;
     while(getline(&line, &len, input) != -1) {
-        if(sscanf(line, "%u %lf", &vertex, &score) == 2) {
+        if(sscanf(line, "%" SCNu64 " %lf", &vertex, &score) == 2) {
             renumeratedScores[vertex] = score;
         } else {
             printf("\tInvalid line: \"%s\" in file \"%s\", aborting\n", line, my_args.dataFile.c_str());
@@ -52,13 +54,13 @@ int main(int argc, char **argv) {
         free(line);
     }
     fclose(input);
-	printf("Done (%.2lf s)\n", (currTimeNano() - timeDataReadingStart)*1e-9);
-    printf("Lines in file: %u\n", numLines);
+    printf("Done (%.2lf s)\n", (currTimeNano() - timeDataReadingStart)*1e-9);
+    printf("Lines in file: %" PRIu64 "\n", numLines);
     printf("Vertices: %lu\n", renumeratedScores.size());
 
     auto timeRenumerationReadingStart = currTimeNano();
-	printf("Reading renumeration data from \"%s\"\n", my_args.renumerationFile.c_str());
-	std::unordered_map<unsigned int, unsigned int> renumerationMap;//Converts new to old - backwards renumeration
+    printf("Reading renumeration data from \"%s\"\n", my_args.renumerationFile.c_str());
+    std::unordered_map<uint64_t, uint64_t> renumerationMap;    //Converts new IDs to old - backwards renumeration
     input = fopen(my_args.renumerationFile.c_str(), "r");
     if(input == NULL) {
         printf("\tError while opening file \"%s\", aborting\n", my_args.renumerationFile.c_str());
@@ -66,10 +68,10 @@ int main(int argc, char **argv) {
     }
     line = NULL;
     len = 0;
-    unsigned int v0, v1;
+    uint64_t v0, v1;
     numLines = 0;
     while(getline(&line, &len, input) != -1) {
-        if(sscanf(line, "%u %u", &v0, &v1) == 2) {
+        if(sscanf(line, "%" SCNu64 " %" SCNu64, &v0, &v1) == 2) {
             renumerationMap[v0] = v1;
         } else {
             printf("\tInvalid line: \"%s\" in file \"%s\", aborting\n", line, my_args.renumerationFile.c_str());
@@ -81,20 +83,20 @@ int main(int argc, char **argv) {
         free(line);
     }
     fclose(input);
-	printf("Done (%.2lf s)\n", (currTimeNano() - timeRenumerationReadingStart)*1e-9);
-    printf("Lines in file: %u\n", numLines);
+    printf("Done (%.2lf s)\n", (currTimeNano() - timeRenumerationReadingStart)*1e-9);
+    printf("Lines in file: %" PRIu64 "\n", numLines);
 
     auto timeWritingStart = currTimeNano();
-	printf("Writing result to \"%s\"\n", my_args.outputFile.c_str());
-	FILE* output = fopen(my_args.outputFile.c_str(), "w");
+    printf("Writing result to \"%s\"\n", my_args.outputFile.c_str());
+    FILE* output = fopen(my_args.outputFile.c_str(), "w");
     if(output == NULL) {
         printf("\tError while opening file \"%s\", aborting\n", my_args.outputFile.c_str());
         abort();
     }
-	for(auto p: renumeratedScores) {
-		fprintf(output, "%u %.10lf\n", renumerationMap[p.first], p.second);
-	}
-	fclose(output);
+    for(auto p: renumeratedScores) {
+        fprintf(output, "%" PRIu64 " %.15e\n", renumerationMap[p.first], p.second);
+    }
+    fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeWritingStart)*1e-9);
 
     printf("\nFinished (%.2lf s)\n", (currTimeNano() - t0)*1e-9);

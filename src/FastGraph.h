@@ -22,9 +22,7 @@ class FastGraph {
 
     std::vector< std::vector< double > > threadScores;
 
-    void threadFunction(unsigned int id, unsigned int finishIndex, std::atomic<unsigned int>& counter, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads);
-
-    void threadFunction_noAutosave(unsigned int id, unsigned int m_startID, unsigned int m_finishID, std::vector<unsigned int>& progressVector);
+    void threadFunction(unsigned int id, unsigned int finishIndex, std::atomic<unsigned int>& counter, std::atomic<unsigned int>& finishedTasks, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads);
 
  public:
     FastGraph(globalArgs_t *_args):
@@ -34,6 +32,5 @@ class FastGraph {
     void loadGraph();
     void serialBrandes();
     void threadedBrandes();
-    void threadedBrandes_noAutosave();
     void saveResult(std::string = "", bool noPrinting = false);
 };
