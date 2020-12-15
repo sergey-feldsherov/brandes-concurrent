@@ -182,6 +182,7 @@ void ProgressBar::update() {
     progressLine += str;
 
     progressLine += "\033[K";//This control sequence erases part of current line from cursor position until the end of the line, \e is the GNU shortcut for \033.
+    //progressLine += "\n";
     fprintf(stdout, "%s", progressLine.c_str());//Printing to stderr to evade cursor blinking and potential mess if IO is redirected to file.
     fflush(stdout);
 

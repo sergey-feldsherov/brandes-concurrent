@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <chrono>
 #include <cstdio>
+#include <cmath>
 
 #include "FastGraph.h"
 #include "ProgressBar.h"
@@ -31,9 +32,10 @@ void FastGraph::loadGraph() {
         if(line[0] == '#') {
             if(args->debug) {
                 printf("\tEncountered a commentary line\n");
+                fflush(stdout);
             }
         } else {
-            if(sscanf(line, "%u %u", &v0, &v1) == 2) {
+            if(sscanf(line, "%llu %llu", &v0, &v1) == 2) {
                 allEdgesMap[v0].insert(v1);
                 if(not args->directed) {
                     allEdgesMap[v1].insert(v0);
@@ -43,6 +45,7 @@ void FastGraph::loadGraph() {
                 edgeCount++;
             } else {
                 printf("\tInvalid line: %s\n", line);
+                fflush(stdout);
                 abort();
             }
         }
@@ -57,19 +60,21 @@ void FastGraph::loadGraph() {
     t = currTimeNano() - t;
     printf("Done (%.4lf seconds)\n", t * 1e-9);
     printf("Vertices: %lu, edges: %u\n", vertices.size(), edgeCount);
+    fflush(stdout);
 
     unsigned long long t1 = currTimeNano();
     if(args->norenumeration) {//TODO: this case can be optimized
         printf("Constructing CSR without renumeration\n");
+        fflush(stdout);
 
         indices.resize(vertices.size() + 1);
         csr.reserve(vertices.size());
-        for(unsigned int i = 0; i < vertices.size(); i++) {
+        for(unsigned long long i = 0; i < vertices.size(); i++) {
             vertices[i] = i;
             renumerationTable[i] = i;
         }
         int currPosition = 0;
-        for(unsigned int idx = 0; idx < vertices.size(); idx++) {
+        for(unsigned long long idx = 0; idx < vertices.size(); idx++) {
             indices[idx] = currPosition;
 	        for(auto vrtx: allEdgesMap[vertices[idx]]) {
                 csr.push_back(renumerationTable[vrtx]);
@@ -80,14 +85,15 @@ void FastGraph::loadGraph() {
 
     } else {
         printf("Renumerating graph\n");
+        fflush(stdout);
 
         indices.resize(vertices.size() + 1);
         csr.reserve(vertices.size());
-        for(unsigned int idx = 0; idx < vertices.size(); idx++) {
+        for(unsigned long long idx = 0; idx < vertices.size(); idx++) {
             renumerationTable[vertices[idx]] = idx;
         }
-        int currPosition = 0;
-        for(unsigned int idx = 0; idx < vertices.size(); idx++) {
+        unsigned long long currPosition = 0;
+        for(unsigned long long idx = 0; idx < vertices.size(); idx++) {
             indices[idx] = currPosition;
 	        for(auto vrtx: allEdgesMap[vertices[idx]]) {
                 csr.push_back(renumerationTable[vrtx]);
@@ -103,7 +109,7 @@ void FastGraph::loadGraph() {
 
     if(args->finishID == 0) {
         args->finishID = vertices.size();
-        printf("Upper interval border not specified, Brandes will be run from %u to %lu\n", args->startID, vertices.size());
+        printf("Upper interval border not specified, Brandes will be run from %llu to %lu\n", args->startID, vertices.size());
     }
 
     fflush(stdout);
@@ -111,7 +117,8 @@ void FastGraph::loadGraph() {
 
 void FastGraph::serialBrandes() {
     assert(args->startID < args->finishID);
-    printf("\nRunning serial Brandes for vertices in interval [%u, %u).\n", args->startID, args->finishID);
+    printf("\nRunning serial Brandes for vertices in interval [%llu, %llu).\n", args->startID, args->finishID);
+    fflush(stdout);
 
     auto t = currTimeNano();
     ProgressBar bar;
@@ -120,31 +127,31 @@ void FastGraph::serialBrandes() {
 
     scores.resize(vertices.size(), 0.0);
 
-    for(unsigned int s = args->startID; s < args->finishID; s++) {
+    for(vertex s = args->startID; s < args->finishID; s++) {
 
-        std::stack< int > S;
+        std::stack<vertex> S;
         //assert(S.empty());
 
-        std::vector< std::vector< unsigned int > > P(vertices.size(), std::vector< unsigned int > ());
+        std::vector< std::vector<vertex> > P(vertices.size(), std::vector<vertex> ());
 
-        std::vector< unsigned int > sigma(vertices.size(), 0);
+        std::vector<unsigned long long> sigma(vertices.size(), 0);
         sigma[s] = 1;
 
-        std::vector< int > d(vertices.size(), -1);
+        std::vector<long long> d(vertices.size(), -1);
         d[s] = 0;
 
-        std::deque< int > Q;
+        std::deque<vertex> Q;
         //assert(Q.empty());
         Q.push_back(s);
 
         while(not Q.empty()) {
-            int v = Q.front();
+            vertex v = Q.front();
             Q.pop_front();
             S.push(v);
-            int st = indices[v];
-            int fn = indices[v + 1];
-            for(int w = st; w < fn; w++) {
-                int neighbour = csr[w];
+            auto st = indices[v];
+            auto fn = indices[v + 1];
+            for(auto w = st; w < fn; w++) {
+                vertex neighbour = csr[w];
                 if(d[neighbour] < 0) {
                     Q.push_back(neighbour);
                     d[neighbour] = d[v] + 1;
@@ -156,7 +163,7 @@ void FastGraph::serialBrandes() {
             }
         }
 
-        std::vector< double > delta(vertices.size(), 0.);
+        std::vector<double> delta(vertices.size(), 0.);
         while(not S.empty()) {
             vertex w = S.top();
             S.pop();
@@ -179,19 +186,19 @@ void FastGraph::serialBrandes() {
 
 void FastGraph::threadedBrandes() {
     assert(args->startID < args->finishID);
-    printf("\nRunning threaded Brandes for vertices in interval [%u, %u).\n", args->startID, args->finishID);
+    printf("\nRunning threaded Brandes for vertices in interval [%llu, %llu).\n", args->startID, args->finishID);
     fflush(stdout);
     unsigned long long t0 = currTimeNano();
 
-    std::atomic<unsigned int> counter(args->startID);
-    std::atomic<unsigned int> finishedTasks(0);
+    std::atomic<vertex> counter(args->startID);
+    std::atomic<vertex> finishedTasks(0);
 
     scores.resize(vertices.size(), 0.);
     threadScores.resize(args->thNum, std::vector< double >(vertices.size(), 0.));
     std::vector< std::thread > workers;
     std::atomic<bool> shouldBeRunning(true);
     std::atomic<unsigned int> runningThreads(0);
-    unsigned int fID = args->finishID;
+    vertex fID = args->finishID;
     std::string saveFileName = "";
 
     printf("Starting threads\n");
@@ -210,7 +217,7 @@ void FastGraph::threadedBrandes() {
     ProgressBar bar;
     bar.setMax(args->finishID - args->startID);
     bar.start();
-    unsigned int finishedTasksVal = finishedTasks.load();
+    auto finishedTasksVal = finishedTasks.load();
     while(finishedTasksVal < (args->finishID - args->startID)) {
         finishedTasksVal = finishedTasks.load();
         bar.setCurrent(finishedTasksVal);
@@ -275,7 +282,7 @@ void FastGraph::threadedBrandes() {
 
     printf("Reducing scores\n");
     fflush(stdout);
-    for(unsigned int i = 0; i < vertices.size(); i++) {
+    for(unsigned long long i = 0; i < vertices.size(); i++) {
         for(unsigned int j = 0; j < (unsigned int) args->thNum; j++) {
             scores[i] += threadScores[j][i];
         }
@@ -289,38 +296,38 @@ void FastGraph::threadedBrandes() {
 }
 
 
-void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<unsigned int>& counter, std::atomic<unsigned int>& finishedTasks, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads) {
+void FastGraph::threadFunction(unsigned int id, vertex endID, std::atomic<vertex>& counter, std::atomic<vertex>& finishedTasks, std::atomic<bool>& shouldBeRunning, std::atomic<unsigned int>& runningThreads) {
     runningThreads.fetch_add(1);
 
     while(true) {
-        unsigned int s = counter.fetch_add(1);
+        vertex s = counter.fetch_add(1);
         if(s >= vertices.size() || s >= endID) {
             break;
         }
 
-        std::stack< int > S;
+        std::stack<vertex> S;
         //assert(S.empty());
 
-        std::vector< std::vector< unsigned int > > P(vertices.size(), std::vector< unsigned int >());
+        std::vector< std::vector<vertex> > P(vertices.size(), std::vector<vertex>());
 
-        std::vector< unsigned int > sigma(vertices.size(), 0);
+        std::vector<unsigned long long> sigma(vertices.size(), 0);
         sigma[s] = 1;
 
-        std::vector< int > d(vertices.size(), -1);
+        std::vector<long long> d(vertices.size(), -1);
         d[s] = 0;
 
-        std::deque< int > Q;
+        std::deque<vertex> Q;
         //assert(Q.empty());
         Q.push_back(s);
 
         while(not Q.empty()) {
-            int v = Q.front();
+            vertex v = Q.front();
             Q.pop_front();
             S.push(v);
-            int st = indices[v];
-            int fn = indices[v + 1];
-            for(int w = st; w < fn; w++) {
-                int neighbour = csr[w];
+            auto st = indices[v];
+            auto fn = indices[v + 1];
+            for(auto w = st; w < fn; w++) {
+                vertex neighbour = csr[w];
                 if(d[neighbour] < 0) {
                     Q.push_back(neighbour);
                     d[neighbour] = d[v] + 1;
@@ -337,7 +344,13 @@ void FastGraph::threadFunction(unsigned int id, unsigned int endID, std::atomic<
             vertex w = S.top();
             S.pop();
             for(auto v: P[w]) {
-                delta[v] += ((double) sigma[v] / (double) sigma[w]) * (1. + delta[w]);
+                double oldDelta = delta[v];
+                double adding = ((double) sigma[v] / (double) sigma[w]) * (1. + delta[w]);
+                delta[v] += adding;
+                if(args->debug && std::isnan(delta[v])) {
+                    printf("%lf + (%llu/%llu)*(1.+%lf) = %lf(isnan: true) in BFS from %llu\n", oldDelta, sigma[v], sigma[w], delta[w], delta[v], s);
+                    fflush(stdout);
+                }
             }
             if( w != s ) {
                 threadScores[id][w] += delta[w];
@@ -378,7 +391,7 @@ void FastGraph::saveResult(std::string str, bool noPrinting) {
 
     unsigned long long t = currTimeNano();
     for(unsigned int i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%u %.15e\n", vertices[i], scores[i]);
+        fprintf(output, "%llu %.15e\n", vertices[i], scores[i]);
     }
     fclose(output);
 

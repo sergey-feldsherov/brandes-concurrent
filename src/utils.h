@@ -10,8 +10,8 @@ struct globalArgs_t {
     std::string outputDir;
     std::string saveFilePrefix;
     int thNum;
-    unsigned int startID;
-    unsigned int finishID;
+    unsigned long long startID;
+    unsigned long long finishID;
     unsigned int autosaveInterval;
     bool norenumeration;
 };
