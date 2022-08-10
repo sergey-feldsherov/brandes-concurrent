@@ -4,6 +4,8 @@
 #include <vector>
 #include <unordered_map>
 #include <argp.h>
+#include <unistd.h>
+#include <time.h>
 
 unsigned long long currTimeNano();
 static int parse_opt(int key, char *arg, struct argp_state *state);

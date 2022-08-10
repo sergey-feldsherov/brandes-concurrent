@@ -6,6 +6,9 @@
 #include <cmath> //fabs(), fmax(), sqrt()
 #include <algorithm>
 #include <argp.h>
+#include <vector>
+#include <time.h>
+#include <unistd.h>
 
 unsigned long long currTimeNano();
 static int parse_opt(int key, char *arg, struct argp_state *state);
