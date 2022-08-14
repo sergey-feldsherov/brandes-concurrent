@@ -14,7 +14,8 @@ static int parse_opt(int key, char *arg, struct argp_state *state);
 
 struct Args {
 	std::string inputFile = "./input/input.txt";
-    std::string outputFile = "./output/output.txt";
+	std::string outputFile = "./output/output.txt";
+	int france = 0;//see options
 };
 
 Args my_args;
@@ -23,8 +24,9 @@ int main(int argc, char **argv) {
     auto t0 = currTimeNano();
 
     struct argp_option options[] = {
-        {  "input", 'i', "FILE", 0, "Path to input file" },
-        { "output", 'o', "FILE", 0, "Path to output file" },
+        {  "input", 'i', "FILE", 0,                                                  "Path to input file" },
+        { "output", 'o', "FILE", 0,                                                 "Path to output file" },
+	{ "french", 'f',      0, 0, "If included, graph vertices will be enumerated from 1 instead of 0." },
         { 0 }
     };
     struct argp argp = {options, parse_opt, 0, 0};
@@ -115,7 +117,7 @@ int main(int argc, char **argv) {
         abort();
     }
     for(uint64_t i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i, vertices[i]);
+        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i + my_args.france, vertices[i] + my_args.france);
     }
     fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeNew2oldWriteStart)*1e-9);
@@ -129,9 +131,11 @@ int main(int argc, char **argv) {
 
 static int parse_opt(int key, char *arg, struct argp_state *state) {
     if(key == 'i') {
-        my_args.inputFile = arg;
+	    my_args.inputFile = arg;
     } else if(key == 'o') {
-        my_args.outputFile = arg;
+	    my_args.outputFile = arg;
+    } else if(key == 'f') {
+	    my_args.france = 1;
     }
 
     return 0;
