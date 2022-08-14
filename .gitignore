@@ -8,3 +8,6 @@ errCalc
 *.txt
 *.graph
 *.ranking
+*.renumerated
+*.new2old
+*.old2new
