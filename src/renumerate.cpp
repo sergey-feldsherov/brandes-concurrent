@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     }
     for(uint64_t i = 0; i < vertices.size(); i++) {
         for(auto vrtx: allEdgesMap[vertices[i]]) {
-            fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i, renumerationTable[vrtx]);
+            fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i + my_args.france, renumerationTable[vrtx] + my_args.france);
         }
     }
     fclose(output);
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
         abort();
     }
     for(uint64_t i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", vertices[i], i);
+        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", vertices[i], i + my_args.france);
     }
     fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeOld2newWriteStart)*1e-9);
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
         abort();
     }
     for(uint64_t i = 0; i < vertices.size(); i++) {
-        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i + my_args.france, vertices[i] + my_args.france);
+        fprintf(output, "%" PRIu64 " %" PRIu64 "\n", i + my_args.france, vertices[i]);
     }
     fclose(output);
     printf("Done (%.2lf s)\n", (currTimeNano() - timeNew2oldWriteStart)*1e-9);
