@@ -24,6 +24,7 @@ struct Args {
     std::string file2 = "./file2.txt";
     std::string split1 = " ";
     std::string split2 = " ";
+    int top = 10000;
 };
 
 Args my_args;
@@ -32,10 +33,11 @@ int main(int argc, char** argv) {
     auto t0 = currTimeNano();
 
     struct argp_option options[] = {
-        {  "file1", -1, "FILE", 0,    "Path to first file" },
-        {  "file2", -2, "FILE", 0,   "Path to second file" },
-        { "split1", -3,  "STR", 0,  "Split for first file" },
-        { "split2", -4,  "STR", 0, "Split for second file" },
+        {  "file1", -1, "FILE", 0,             "Path to first file" },
+        {  "file2", -2, "FILE", 0,            "Path to second file" },
+        { "split1", -3,  "STR", 0,           "Split for first file" },
+        { "split2", -4,  "STR", 0,          "Split for second file" },
+	{    "top", -5,  "INT", 0, "Top size to calculate accuracy" },
         { 0 }
     };
     struct argp argp = {options, parse_opt, 0, 0};
@@ -90,7 +92,7 @@ int main(int argc, char** argv) {
         printCounter++;
     }
 
-    int topSize = 10000;
+    int topSize = my_args.top;
     printf("\n");
     printf("Calculating top-%d nodes\n", topSize);
     std::vector<unsigned int> data1topk = topk(data1, topSize);
@@ -159,6 +161,8 @@ static int parse_opt(int key, char *arg, struct argp_state *state) {
         my_args.split1 = arg;
     } else if(key == -4) {
         my_args.split2 = arg;
+    } else if(key == -5) {
+	my_args.top = atoi(arg);
     }
 
     return 0;
