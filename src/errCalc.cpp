@@ -214,11 +214,13 @@ std::vector<unsigned int> intersect(std::vector<unsigned int>& v1, std::vector<u
 }
 
 void printSome(std::vector<unsigned int>& data, std::unordered_map<unsigned int, double>& scores, int k) {
-    assert(data.size() >= k);
+    // assert(data.size() >= k);
 
-    for(int i = 0; i < k-1; i++) {
-        printf("%u(%lf), ", data[i], scores[data[i]]);
+    for(int i = 0; i < k && i < data.size(); i++) {
+        printf("%u(%lf) ", data[i], scores[data[i]]);
     }
-    printf("%u(%lf)\n", data[k-1], scores[data[k-1]]);
+
+    printf("\n");
+    // printf("%u(%lf)\n", data[k-1], scores[data[k-1]]);
 }
 
