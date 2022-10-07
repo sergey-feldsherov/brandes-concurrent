@@ -29,7 +29,7 @@ void FastGraph::loadGraph() {
     size_t len = 0;
     vertex v0, v1;
     while(getline(&line, &len, input) != -1) {
-        if(line[0] == '#') {
+        if(line[0] == '#' || line[0] == '%') {
             if(args->debug) {
                 printf("\tEncountered a commentary line\n");
                 fflush(stdout);
