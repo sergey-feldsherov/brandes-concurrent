@@ -17,7 +17,7 @@ void readTruthFile(std::unordered_map<unsigned int, double>&, std::unordered_set
 bool comp(std::pair<unsigned int, double>, std::pair<unsigned int, double>);
 std::vector<unsigned int> topk(std::unordered_map<unsigned int, double>&, unsigned int);
 std::vector<unsigned int> intersect(std::vector<unsigned int>&, std::vector<unsigned int>&);
-void printSome(std::vector<unsigned int>&, std::unordered_map<unsigned int, double>&, int);
+void printSome(std::vector<unsigned int>&, std::unordered_map<unsigned int, double>&, unsigned int);
 
 struct Args {
     std::string file1 = "./file1.txt";
@@ -33,14 +33,14 @@ int main(int argc, char** argv) {
     auto t0 = currTimeNano();
 
     struct argp_option options[] = {
-        {  "file1", -1, "FILE", 0,             "Path to first file" },
-        {  "file2", -2, "FILE", 0,            "Path to second file" },
-        { "split1", -3,  "STR", 0,           "Split for first file" },
-        { "split2", -4,  "STR", 0,          "Split for second file" },
-	{    "top", -5,  "INT", 0, "Top size to calculate accuracy" },
-        { 0 }
+        {  "file1", -1, "FILE", 0,             "Path to first file", 0 },
+        {  "file2", -2, "FILE", 0,            "Path to second file", 0 },
+        { "split1", -3,  "STR", 0,           "Split for first file", 0 },
+        { "split2", -4,  "STR", 0,          "Split for second file", 0 },
+        {    "top", -5,  "INT", 0, "Top size to calculate accuracy", 0 },
+        {        0,  0,      0, 0,                                0, 0 }
     };
-    struct argp argp = {options, parse_opt, 0, 0};
+    struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     std::unordered_map<unsigned int, double> data1;
@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
     double sumErr = 0.;
     double sumSquareErr = 0.;
     double maxErr = 0.;
-    double data1size = static_cast<double>(data1.size());
-    double data2size = static_cast<double>(data2.size());
+    //double data1size = static_cast<double>(data1.size());
+    //double data2size = static_cast<double>(data2.size());
     //int cntPos = 0;
     //int cntNeg = 0;
     for(auto p: data1) {
@@ -106,11 +106,11 @@ int main(int argc, char** argv) {
     printSome(data2topk, data2, 7);
 
     printf("\n");
-    printf("L1:   %.15e (sum of absolute errors)\n", sumErr);
-    printf("L2:   %.15e (Euclidean norm of error vector)\n", sqrt(sumSquareErr));
-    printf("Linf: %.15e (max absolute error)\n", maxErr);
-    printf("E:    %.15e (average error)\n", sumErr / fmax(data1.size(), data2.size()));
-    printf("RMSE: %.15e (root mean square error)\n", sqrt(sumSquareErr / fmax(data1.size(), data2.size())));
+    printf("L1:   %.3e (sum of absolute errors)\n", sumErr);
+    printf("L2:   %.3e (Euclidean norm of error vector)\n", sqrt(sumSquareErr));
+    printf("Linf: %.3e (max absolute error)\n", maxErr);
+    printf("E:    %.3e (average error)\n", sumErr / fmax(data1.size(), data2.size()));
+    printf("RMSE: %.3e (root mean square error)\n", sqrt(sumSquareErr / fmax(data1.size(), data2.size())));
 
     printf("\nFinished (%.2lf s)\n", (currTimeNano() - t0)*1e-9);
     return 0;
@@ -152,7 +152,7 @@ void readTruthFile(std::unordered_map<unsigned int, double>& data, std::unordere
 }
 
 
-static int parse_opt(int key, char *arg, struct argp_state *state) {
+static int parse_opt(int key, char *arg, struct argp_state *) {
     if(key == -1) {
         my_args.file1 = arg;
     } else if(key == -2) {
@@ -213,10 +213,10 @@ std::vector<unsigned int> intersect(std::vector<unsigned int>& v1, std::vector<u
     return res;
 }
 
-void printSome(std::vector<unsigned int>& data, std::unordered_map<unsigned int, double>& scores, int k) {
+void printSome(std::vector<unsigned int>& data, std::unordered_map<unsigned int, double>& scores, unsigned int k) {
     // assert(data.size() >= k);
 
-    for(int i = 0; i < k && i < data.size(); i++) {
+    for(unsigned int i = 0; i < k && i < data.size(); i++) {
         printf("%u(%lf) ", data[i], scores[data[i]]);
     }
 
