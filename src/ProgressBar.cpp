@@ -127,7 +127,7 @@ void ProgressBar::update() {
     progressLine += "\033[K\n";//Erase remainder of line and move cursor to the beginning of next line
 
     double completedPercentage = (current - min) / (max - min);
-    char str[256];
+    char str[512];
     sprintf(str, "%d%%", (int) (completedPercentage * 100.));
     progressLine += str;
 
@@ -169,8 +169,8 @@ void ProgressBar::update() {
     }
     //printf("it/s = %lf, total = %lf, comp = %lf%%\n\n\n", iterationsPerSecond, totalTimeSpentSeconds, completedPercentage);
 
-    char spentTime[256];
-    char estimatedTime[256];
+    char spentTime[128];
+    char estimatedTime[128];
     timeConvert(totalTimeSpentSeconds, spentTime);
     timeConvert(filteredEta, estimatedTime);
 
