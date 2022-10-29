@@ -5,10 +5,14 @@ The shortest path computation task is split evenly across all threads.
 Additionally, a data reduction step is introduced after threads are joined.
 
 ## optimize me
-single-thread runs
-|    dataset | renumerated? | brandes loop time |
-| ---------- | ------------ | ----------------- |
-| ca-AstroPh |           no |            02m30s |
+single-thread runs with built-in renumeration
+|    dataset |        branch | brandes loop time |
+| ---------- | ------------- | ----------------- |
+| ca-AstroPh |        master |            02m30s |
+|            | optimizations |            02m22s |
+|            |               |            02m16s |
+|            |               |            02m22s |
+|            |               |            02m19s |
 
 ## Usage
 
