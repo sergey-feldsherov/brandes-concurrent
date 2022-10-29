@@ -22,12 +22,12 @@ int main(int argc, char **argv) {
     auto t0 = currTimeNano();
 
     struct argp_option options[] = {
-        {         "data",  -1, "FILE", 0,       "Path to file with scores" },
-        { "renumeration",  -2, "FILE", 0, "Path to file with renumeration" },
-        {       "output", 'o', "FILE", 0,            "Path to output file" },
-        { 0 }
+        {         "data",  -1, "FILE", 0,       "Path to file with scores", 0 },
+        { "renumeration",  -2, "FILE", 0, "Path to file with renumeration", 0 },
+        {       "output", 'o', "FILE", 0,            "Path to output file", 0 },
+        {              0,   0,      0, 0,                                0, 0 }
     };
-    struct argp argp = {options, parse_opt, 0, 0};
+    struct argp argp = { options, parse_opt, 0, 0, 0, 0, 0 };
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     auto timeDataReadingStart = currTimeNano();
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 }
 
 
-static int parse_opt(int key, char *arg, struct argp_state *state) {
+static int parse_opt(int key, char *arg, struct argp_state *) {
     if(key == -1) {
         my_args.dataFile = arg;
     } else if(key == -2) {
