@@ -41,8 +41,8 @@ void printArgs(struct globalArgs_t *args) {
 
     printf("\tthNum = %d\n", args->thNum);
 
-    printf("\tstartID = %u\n", args->startID);
-    printf("\tfinishID = %u\n", args->finishID);
+    printf("\tstartID = %llu\n", args->startID);
+    printf("\tfinishID = %llu\n", args->finishID);
 
     printf("\tautosaveInterval = %u\n", args->autosaveInterval);
     if(args->norenumeration) {
