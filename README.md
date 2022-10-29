@@ -4,6 +4,12 @@ This project implements coarse-grained parallelism for Brandes algorithm for unw
 The shortest path computation task is split evenly across all threads.
 Additionally, a data reduction step is introduced after threads are joined.
 
+## optimize me
+single-thread runs
+|    dataset | renumerated? | brandes loop time |
+| ---------- | ------------ | ----------------- |
+| ca-AstroPh |           no |            02m30s |
+
 ## Usage
 
 * `-u` or `--undirected` to treat graph as undirected, i.e. each edge (u -> v) from input file will correspond to two edges. Only one instance of edge is required to create an undirected edge. If not included, the graph is considered to be directed.
