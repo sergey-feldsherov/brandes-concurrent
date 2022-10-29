@@ -127,10 +127,13 @@ void FastGraph::serialBrandes() {
 
     scores.resize(vertices.size(), 0.0);
 
+    std::vector<vertex> S;
+
     for(vertex s = args->startID; s < args->finishID; s++) {
 
-        std::stack<vertex> S;
-        //assert(S.empty());
+        //std::stack<vertex> S;
+	//S.clear();
+        assert(S.empty());
 
         std::vector< std::vector<vertex> > P(vertices.size(), std::vector<vertex> ());
 
@@ -147,7 +150,8 @@ void FastGraph::serialBrandes() {
         while(not Q.empty()) {
             vertex v = Q.front();
             Q.pop_front();
-            S.push(v);
+            //S.push(v);
+	    S.push_back(v);
             auto st = indices[v];
             auto fn = indices[v + 1];
             for(auto w = st; w < fn; w++) {
@@ -165,8 +169,10 @@ void FastGraph::serialBrandes() {
 
         std::vector<double> delta(vertices.size(), 0.);
         while(not S.empty()) {
-            vertex w = S.top();
-            S.pop();
+            //vertex w = S.top();
+	    vertex w = S.back();
+            //S.pop();
+	    S.pop_back();
             for(auto v: P[w]) {
                 delta[v] += ((double) sigma[v] / (double) sigma[w]) * (1. + delta[w]);
             }
