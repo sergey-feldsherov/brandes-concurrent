@@ -22,12 +22,12 @@ int main(int argc, char** argv) {
     auto t0 = currTimeNano();
 
     struct argp_option options[] = {
-        {  "indir", 'i',    "DIR", 0, "Path to directory with input files" },
-        { "suffix", 's', "SUFFIX", 0,   "Suffix to look for in file names" },
-        { "output", 'o',   "FILE", 0,                "Path to output file" },
-        { 0 }
+        {  "indir", 'i',    "DIR", 0, "Path to directory with input files", 0 },
+        { "suffix", 's', "SUFFIX", 0,   "Suffix to look for in file names", 0 },
+        { "output", 'o',   "FILE", 0,                "Path to output file", 0 },
+        {        0,   0,        0, 0,                                    0, 0 }
     };
-    struct argp argp = {options, parse_opt, 0, 0};
+    struct argp argp = { options, parse_opt, 0, 0, 0, 0, 0 };
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     if(my_args.inputDirectory.back() != '/') {
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 }
 
 
-static int parse_opt(int key, char *arg, struct argp_state *state) {
+static int parse_opt(int key, char *arg, struct argp_state *) {
     if(key == 'i') {
         my_args.inputDirectory = arg;
     } else if(key == 's') {
