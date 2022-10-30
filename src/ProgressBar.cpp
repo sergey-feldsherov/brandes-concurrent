@@ -42,7 +42,7 @@ void ProgressBar::start() {
     timeToStop.store(false);
     timeToUpdate.store(true);
     finished = false;
-    fprintf(stdout, "\n");
+    //fprintf(stdout, "\n");
 
     printingThread = std::thread([this] (){this->loop();});
 
@@ -115,16 +115,17 @@ void ProgressBar::update() {
     [Status: running]
     27%|==>       | 493/1821 [01m38s<06m11s, 5.03it/s]
     */
-    std::string progressLine = "\033[1F";//Move the cursor to the beginning of previous line
+    //std::string progressLine = "\033[1F";//Move the cursor to the beginning of previous line
+    std::string progressLine = "\033[G";
 
-    if(message != "") {
-        progressLine += message + "\033[K\n";
-        message = "";
-    }
+    //if(message != "") {
+    //    progressLine += message + "\033[K\n";
+    //    message = "";
+    //}
 
-    progressLine += "[Status: ";
-    progressLine += statusMessage + "]";
-    progressLine += "\033[K\n";//Erase remainder of line and move cursor to the beginning of next line
+    //progressLine += "[Status: ";
+    //progressLine += statusMessage + "]";
+    //progressLine += "\033[K\n";//Erase remainder of line and move cursor to the beginning of next line
 
     double completedPercentage = (current - min) / (max - min);
     char str[512];
