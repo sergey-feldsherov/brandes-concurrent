@@ -3,12 +3,7 @@
 #include <cstdio>
 
 #include "ProgressBar.h"
-
-unsigned long long threadCurrTimeNano() {
-  struct timespec t;
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t);
-  return t.tv_sec*1000000000 + t.tv_nsec;
-}
+#include "timing.h"
 
 ProgressBar::ProgressBar() {
     //
@@ -90,13 +85,13 @@ ProgressBar::~ProgressBar() {
 
 
 void ProgressBar::loop() {
-    auto t_0 = threadCurrTimeNano();
+    auto t_0 = currTimeNanoThread();
 
     while(true) {
-        if(timeToUpdate.load() || ((double)(threadCurrTimeNano() - t_0))*1e-7 >= updateIntervalMilliseconds) {
+        if(timeToUpdate.load() || ((double)(currTimeNanoThread() - t_0))*1e-7 >= updateIntervalMilliseconds) {
             timeToUpdate.store(false);
             update();
-            t_0 = threadCurrTimeNano();
+            t_0 = currTimeNanoThread();
         }
         if(timeToStop.load() || finished) {
             statusMessage = "finished";

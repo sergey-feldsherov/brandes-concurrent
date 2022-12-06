@@ -92,7 +92,13 @@ int main(int argc, char *argv[]) {
 	if(debug) {
 		printf("Input file size: %llu bytes\n", inFileSize);
 	}
-	//TODO: create progress bar and traverse the input file
+	//TODO: create progress bar
+	FILE* input = fopen(argv[0], 'r');
+	if(input == NULL) {
+		printf("Unable to read input file.\n");
+		return -1;
+	}
+	//TODO: traverse input file and close input
 	
 	//TODO: construct renumeration structures
 	

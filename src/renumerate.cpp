@@ -7,7 +7,9 @@
 #include <cstdint>
 #include <cinttypes>
 #include <limits>
-#include <time.h>
+
+#include "timing.h"
+
 
 unsigned long long currTimeNano();
 static int parse_opt(int key, char *arg, struct argp_state *state);
@@ -141,9 +143,3 @@ static int parse_opt(int key, char *arg, struct argp_state *) {
     return 0;
 }
 
-
-unsigned long long currTimeNano() {
-    struct timespec t;
-    clock_gettime (CLOCK_MONOTONIC, &t);
-    return t.tv_sec*1000000000 + t.tv_nsec;
-}

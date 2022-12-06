@@ -3,12 +3,15 @@
 
 #include "FastGraph.h"
 #include "utils.h"
+#include "timing.h"
+
 
 globalArgs_t globalArgs;
 
 static int parse_opt(int key, char *arg, struct argp_state *);
 
 int main(int argc, char **argv) {
+	unsigned long long t0 = currTimeNano();
 
     //init globalArgs (fill default values)
     initArgs(&globalArgs);
@@ -54,6 +57,9 @@ int main(int argc, char **argv) {
     std::string suffix = "." + std::to_string(globalArgs.startID) + "-" + std::to_string(globalArgs.finishID) + ".final";
     fg.saveResult(globalArgs.saveFilePrefix + suffix);
 
+    unsigned long long t1 = currTimeNano();
+    printf("Total end-to-end time: %lf s\n", (t1 - t0) * 1e-9);
+
     return 0;
 }
 
@@ -80,7 +86,4 @@ static int parse_opt(int key, char *arg, struct argp_state *) {
 
     return 0;
 }
-
-
-
 

@@ -19,4 +19,3 @@ struct globalArgs_t {
 void initArgs(struct globalArgs_t *args);
 void printArgs(struct globalArgs_t *args);
 
-unsigned long long currTimeNano();
