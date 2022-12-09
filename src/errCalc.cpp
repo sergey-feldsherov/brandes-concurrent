@@ -18,6 +18,7 @@ bool comp(std::pair<unsigned int, double>, std::pair<unsigned int, double>);
 std::vector<unsigned int> topk(std::unordered_map<unsigned int, double>&, unsigned int);
 std::vector<unsigned int> intersect(std::vector<unsigned int>&, std::vector<unsigned int>&);
 void printSome(std::vector<unsigned int>&, std::unordered_map<unsigned int, double>&, unsigned int);
+void printTogether(std::unordered_map<unsigned int, double>&, std::unordered_map<unsigned int, double>&, unsigned int);
 
 struct Args {
     std::string file1 = "./file1.txt";
@@ -102,8 +103,14 @@ int main(int argc, char** argv) {
     printf("Precision: %.4lf (%lu nodes in intersection out of %d)\n", ((double) tkIntersection.size()) / (double) topSize, tkIntersection.size(), topSize);
 
     printf("\n");
-    printSome(data1topk, data1, 7);
-    printSome(data2topk, data2, 7);
+    int ptop = 10;
+    printf("file1 top %d:\n", ptop);
+    printSome(data1topk, data1, ptop);
+    printf("file1 top %d:\n", ptop);
+    printSome(data2topk, data2, ptop);
+
+    printf("\nsome ids with different scores:\n");
+    printTogether(data1, data2, ptop);
 
     printf("\n");
     printf("L1:   %.3e (sum of absolute errors)\n", sumErr);
@@ -222,5 +229,25 @@ void printSome(std::vector<unsigned int>& data, std::unordered_map<unsigned int,
 
     printf("\n");
     // printf("%u(%lf)\n", data[k-1], scores[data[k-1]]);
+}
+
+
+void printTogether(std::unordered_map<unsigned int, double>& scores1, std::unordered_map<unsigned int, double>& scores2, unsigned int k) {
+	printf("|      id |    score1 |    score2 |     delta |\n");
+	printf("| ------- | --------- | --------- | --------- |\n");
+	unsigned int c = 0;
+	double delta;
+	double score2;
+	for(auto p: scores1) {
+		score2 = scores2[p.second];
+		delta = fabs(p.second - score2);
+		if(delta > 1e-9) {
+			printf("| %7u | %.3e | %.3e | %.3e |\n", p.first, p.second, score2, delta);
+			++k;
+		}
+		if(c >= k) {
+			return;
+		}
+	}
 }
 
